@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swatched Recommendation System (QA Tool)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .filter-container {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .results-container {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .color-swatch {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #000;
+            display: inline-block;
+        }
+        #payload {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Swatched Recommendation System (QA Tool)</h1>
+    
+    <form id="recommendationForm">
+        <div class="form-group">
+            <label>Product Types:</label><br>
+            <input type="checkbox" name="productTypes" value="BLUSH"> BLUSH
+            <input type="checkbox" name="productTypes" value="CONCEALER"> CONCEALER
+            <input type="checkbox" name="productTypes" value="LIPSTICK"> LIPSTICK
+            <input type="checkbox" name="productTypes" value="BRONZER"> BRONZER
+            <input type="checkbox" name="productTypes" value="LIPGLOSS"> LIPGLOSS
+            <input type="checkbox" name="productTypes" value="LIP LINER"> LIP LINER
+            <input type="checkbox" name="productTypes" value="FOUNDATION"> FOUNDATION
+        </div>
+
+        <div class="form-group">
+            <label for="hairColor">Hair Color:</label>
+            <input type="text" id="hairColor" name="hairColor">
+        </div>
+
+        <div class="form-group">
+            <label for="skinTone">Skin Tone:</label>
+            <select id="skinTone" name="skinTone" required>
+                <option value="Fair">Fair</option>
+                <option value="Light">Light</option>
+                <option value="Light Medium">Light Medium</option>
+                <option value="Medium">Medium</option>
+                <option value="TAN">Tan</option>
+                <option value="Deep">Deep</option>
+                <option value="Dark">Dark</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="undertone">Undertone:</label>
+            <select id="undertone" name="undertone" required>
+                <option value="Cool">Cool</option>
+                <option value="Neutral">Neutral</option>
+                <option value="Warm">Warm</option>
+                <option value="Olive">Olive</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Custom Filters:</label>
+            <button type="button" onclick="addFilter()">Add Filter</button>
+            <div id="filtersContainer"></div>
+        </div>
+
+        <button type="button" onclick="getRecommendations()">Get Recommendations</button>
+    </form>
+
+    <div id="payload"></div>
+    <div id="results" class="results-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
