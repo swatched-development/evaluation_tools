@@ -50,7 +50,10 @@ const public_api_key = params.get("key")
                         "yaw_angle": 104.03624346792648
                     };
                     const finalResult = await response.json()
-                    displayResults(finalResult)
+                    if (finalResult.top_colors)
+                      displayResults(finalResult)
+                    else 
+                      alert(finalResult)
                 } catch (error) {
                     //console.error('Error:', error);
                     alert(error);
