@@ -1,0 +1,108 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Color Analysis</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .upload-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-group {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .feature-title {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: #333;
+            text-transform: capitalize;
+        }
+
+        .color-swatches {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .angles {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        #uploadBtn {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #uploadBtn:hover {
+            background: #45a049;
+        }
+
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-container">
+        <h1>Face Color Analysis</h1>
+        <input type="file" id="fileInput" accept="image/*" style="display: none">
+        <button id="uploadBtn">Upload Image</button>
+        <div class="loading" id="loading">Analyzing image...</div>
+    </div>
+ <div class="content-container">
+        <div class="image-preview">
+            <h2>Original Image</h2>
+            <img id="preview" class="preview-img" src="/api/placeholder/400/400" alt="Upload an image">
+        </div>
+        <div>
+            <div id="results" class="results"></div>
+            <div id="angles" class="angles"></div>
+        </div>
+    </div>
+       
+
+    <div id="results" class="results"></div>
+    <div id="angles" class="angles"></div>
+
+    <script src="main.js"></script>
+</body>
+</html>
