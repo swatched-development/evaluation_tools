@@ -52,8 +52,8 @@ const public_api_key = params.get("key")
                     const finalResult = await response.json()
                     displayResults(finalResult)
                 } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error analyzing image');
+                    //console.error('Error:', error);
+                    alert(error);
                 } finally {
                     loading.style.display = 'none';
                 }
