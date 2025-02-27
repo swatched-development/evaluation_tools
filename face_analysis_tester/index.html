@@ -1,108 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Color Analysis</title>
-    <style>
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #f5f5f5;
-        }
-
-        .upload-container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .results {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .feature-group {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .feature-title {
-            font-size: 1.1em;
-            margin-bottom: 10px;
-            color: #333;
-            text-transform: capitalize;
-        }
-
-        .color-swatches {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .color-swatch {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .angles {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-top: 20px;
-        }
-
-        #uploadBtn {
-            background: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        #uploadBtn:hover {
-            background: #45a049;
-        }
-
-        .loading {
-            display: none;
-            margin: 20px 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Facial Color Analyzer</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      display: flex;
+      max-width: 1200px;
+      margin: 0 auto;
+      gap: 20px;
+    }
+    .upload-panel, .results-panel {
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .upload-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .results-panel {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 600px;
+    }
+    h2 {
+      color: #333;
+      margin-top: 0;
+    }
+    .upload-btn {
+      margin: 20px 0;
+      padding: 10px 20px;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .upload-btn:hover {
+      background-color: #3a80d2;
+    }
+    .preview-container {
+      width: 300px;
+      height: 300px;
+      border: 2px dashed #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    #imagePreview {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .color-section {
+      margin-bottom: 20px;
+    }
+    .color-section h3 {
+      margin-bottom: 10px;
+      text-transform: capitalize;
+      color: #444;
+    }
+    .color-swatches {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .color-swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid #ddd;
+      position: relative;
+    }
+    .color-swatch span {
+      position: absolute;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      white-space: nowrap;
+    }
+    .hidden {
+      display: none;
+      visibility: hidden;
+    }
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100px;
+    }
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-left: 4px solid #4a90e2;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .submit-btn {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .submit-btn:hover {
+      background-color: #45a049;
+    }
+    .submit-btn:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
-    <div class="upload-container">
-        <h1>Face Color Analysis</h1>
-        <input type="file" id="fileInput" accept="image/*" style="display: none">
-        <button id="uploadBtn">Upload Image</button>
-        <div class="loading" id="loading">Analyzing image...</div>
+  <div class="container">
+    <div class="upload-panel">
+      <h2>Upload Image</h2>
+      <div class="preview-container">
+        <img id="imagePreview" class="hidden" src="#" alt="Preview">
+        <p id="uploadPrompt">No image selected</p>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" class="hidden">
+      <button class="upload-btn" id="uploadBtn">Select Image and analyze image</button>
+      <!-- <button class="submit-btn" id="submitBtn" disabled>Analyze Image</button> -->
     </div>
- <div class="content-container">
-        <div class="image-preview">
-            <h2>Original Image</h2>
-            <img id="preview" class="preview-img" src="/api/placeholder/400/400" alt="Upload an image">
-        </div>
-        <div>
-            <div id="results" class="results"></div>
-            <div id="angles" class="angles"></div>
-        </div>
+    
+    <div class="results-panel">
+      <h2>Color Analysis Results</h2>
+      <div id="resultsContent">
+        <p>Upload and analyze an image to see results</p>
+      </div>
+      <div id="loadingIndicator" class="loading hidden">
+        <div class="spinner"></div>
+        <p>Analyzing image...</p>
+      </div>
     </div>
-       
+  </div>
 
-    <div id="results" class="results"></div>
-    <div id="angles" class="angles"></div>
-
-    <script src="main.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
