@@ -161,6 +161,31 @@ document.addEventListener('DOMContentLoaded', function() {
   // Display color analysis results
   function displayResults(data) {
     let html = '';
+
+    for (let product_type in data.reference_products){
+       html += `
+        <div class="color-section">
+          <h3>${formatRegionName("SIMILAR "+product_type)}</h3>
+          <div class="color-swatches">
+      `;
+       const products = data.reference_products[product_type];
+       for (let name in products){
+          const [r,g,b] =products[name]
+          const rgbString = `rgb(${r}, ${g}, ${b})`;
+          html += `
+              <div class="color-swatch" style="background-color: ${rgbString}">
+                <span>${name}</span>
+              </div>
+            `;
+
+       }
+        html += `
+          </div>
+        </div>
+      `;
+
+      
+    }
     
     for (const [region, colors] of Object.entries(data.top_colors)) {
       html += `
