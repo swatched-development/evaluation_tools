@@ -167,6 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <div > ${JSON.stringify(data.tone_histogram)} </div>
           <div > ${JSON.stringify(data.undertone_histogram)} </div>
         <div class="color-swatches">
+        <div></div>
     `
 
     for (let product_type in data.reference_products){
