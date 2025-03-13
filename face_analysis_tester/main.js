@@ -162,6 +162,13 @@ document.addEventListener('DOMContentLoaded', function() {
   function displayResults(data) {
     let html = '';
 
+    html +=`
+       <div class="color-section">
+          <div > ${JSON.stringify(data.tone_histogram)} </div>
+          <div > ${JSON.stringify(data.undertone_histogram)} </div>
+        <div class="color-swatches">
+    `
+
     for (let product_type in data.reference_products){
        html += `
         <div class="color-section">
@@ -169,12 +176,14 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="color-swatches">
       `;
        const products = data.reference_products[product_type];
+       let i =0 
        for (let name in products){
           const [r,g,b] =products[name]
           const rgbString = `rgb(${r}, ${g}, ${b})`;
+          i++
           html += `
               <div class="color-swatch" style="background-color: ${rgbString}">
-                <span>${name}</span>
+                <span>${name} ${i%2 ?"<br><br><br>":""} </span>
               </div>
             `;
 
