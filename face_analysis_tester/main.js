@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const loadingIndicator = document.getElementById('loadingIndicator');
 
   // Configuration
-  const MAX_FILE_SIZE_MB = 2; // Maximum file size in MB
-  const MAX_DIMENSION = 800; // Maximum dimension for resizing
+  const MAX_FILE_SIZE_MB = 10; // Maximum file size in MB
+  const MAX_DIMENSION = 1024; // Maximum dimension for resizing
   
   // Image data to be sent
   let imageData = null;
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
     canvas.toBlob(function(blob) {
       const sizeMB = blob.size / (1024 * 1024);
       
-      if (sizeMB > MAX_FILE_SIZE_MB && quality > 0.3) {
+      if (false){//sizeMB > MAX_FILE_SIZE_MB && quality > 0.3) {
         // Reduce quality and try again
         reduceImageQuality(canvas, quality - 0.1);
       } else {
