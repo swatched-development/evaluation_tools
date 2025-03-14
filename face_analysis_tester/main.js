@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Configuration
   const MAX_FILE_SIZE_MB = 10; // Maximum file size in MB
-  const MAX_DIMENSION = 1024; // Maximum dimension for resizing
+  const MAX_DIMENSION = 2048; // Maximum dimension for resizing
   
   // Image data to be sent
   let imageData = null;
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let width = img.width;
     let height = img.height;
     
-    if (width > height) {
+    /*if (width > height) {
       if (width > MAX_DIMENSION) {
         height = Math.round(height * (MAX_DIMENSION / width));
         width = MAX_DIMENSION;
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
         width = Math.round(width * (MAX_DIMENSION / height));
         height = MAX_DIMENSION;
       }
-    }
+    }*/
     
     // Set canvas dimensions
     canvas.width = width;
