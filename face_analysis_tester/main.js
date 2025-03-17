@@ -164,7 +164,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     html +=`
        <div class="color-section">
-          <span> ${JSON.stringify(data.tone_histogram)} </span><br>
+          <span> Skintone:${JSON.stringify(data.vit_skintone)} </span><br>
+          <span> Skintone:${JSON.stringify(data.vit_faceshape)} </span><br>
           <span> ${JSON.stringify(data.undertone_histogram)} </span>
         <div></div>
     `
