@@ -24,7 +24,7 @@ function displayResults(data) {
   resultsContainer.innerHTML = '';
 
   if (typeof data.products === 'string') {
-    alert(data.products);
+    otherAnswers.innerHTML  = data.products;
     return;
   }
 
