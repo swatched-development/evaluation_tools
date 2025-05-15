@@ -1,0 +1,94 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Courier New', Courier, monospace;
+  color: #333;
+  height: 100%;
+  overflow-x: hidden;
+  background: url('swatcha.png') no-repeat center center fixed;
+  background-size: cover;
+}
+
+.vapor-bg {
+  display: none;
+}
+
+.content {
+  padding: 2rem;
+  backdrop-filter: blur(5px);
+}
+
+.search-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+input[type="text"] {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #111;
+  outline: none;
+}
+
+button {
+  background-color: #ff77ff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  color: #fff;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background-color: #ff44ff;
+}
+
+#results table {
+  width: 100%;
+  margin-top: 1rem;
+  background-color: #ffe6fa;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 2px solid #fba4ff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#results th {
+  background-color: #aee9f8;
+  color: #333;
+  padding: 0.75rem;
+  border-bottom: 2px solid #fba4ff;
+  font-weight: bold;
+  text-align: left;
+}
+
+#results td {
+  padding: 0.75rem;
+  background-color: #fff5ff;
+  border-bottom: 1px solid #ffd8ef;
+  color: #222;
+}
+
+#results tr:nth-child(even) td {
+  background-color: #f6dcf8;
+}
+
+#other-answers {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #d8c4f5;
+  border-left: 4px solid #a26cff;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+  color: #2b1d52;
+  box-shadow: 0 0 5px rgba(160, 120, 255, 0.2);
+}
