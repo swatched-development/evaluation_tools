@@ -1,12 +1,13 @@
 const otherAnswers = document.getElementById("other-answers")
+ const term = document.getElementById('searchInput');
+
 async function handleSearch() {
-  const term = document.getElementById('searchInput').value;
   showLoading(true)
   otherAnswers.innerHTML=""
   const res = await fetch('https://8ix3xnvt0j.execute-api.us-east-1.amazonaws.com/prod/beauty-agent', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ search_term: term })
+    body: JSON.stringify({ search_term: term.value })
   });
 
   try{
@@ -14,7 +15,6 @@ async function handleSearch() {
     displayResults(data);
   } catch (error) {
     console.error('Error fetching data:', error);
-    otherAnswers.innerHTML=data.products;
   } finally {
     showLoading(false);
   }
@@ -24,7 +24,22 @@ function displayResults(data) {
   resultsContainer.innerHTML = '';
 
   if (typeof data.products === 'string') {
-    otherAnswers.innerHTML  = data.products;
+
+    if (data.questions && data.questions.options instanceof Array ){
+      const options = document.createElement("div")
+      data.questions.options.forEach((opt)=>{
+        const nb = document.createElement("button")
+        nb.innerHTML=opt
+        nb.onclick =()=>{
+          term.value +=  opt;
+          handleSearch().then(()=>{})
+        }
+        options.appendChild(nb)
+      })
+      otherAnswers.appendChild(options)
+    }else{
+      otherAnswers.innerHTML=data.products;
+    }
     return;
   }
 
