@@ -31,7 +31,7 @@ function displayResults(data) {
         const nb = document.createElement("button")
         nb.innerHTML=opt
         nb.onclick =()=>{
-          term.value +=  opt;
+          term.value +=" "+  opt;
           handleSearch().then(()=>{})
         }
         options.appendChild(nb)
