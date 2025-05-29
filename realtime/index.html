@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-time Facial Color Zones</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .camera-container {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(255, 200, 255, 0.4);
+      border: 2px solid #ffbdfc;
+      margin-top: 40px;
+    }
+    video.input_video, canvas.output_canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    canvas.grid_canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .results-panel {
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 12px;
+      max-width: 1280px;
+      width: 100%;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+    }
+    h2 {
+      margin-top: 0;
+      color: #f0bdf7;
+    }
+    .color-swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin: 6px;
+      border: 2px solid #ff77ff;
+      display: inline-block;
+      position: relative;
+      box-shadow: 0 0 6px rgba(255, 119, 255, 0.6);
+    }
+    .color-swatch span {
+      position: absolute;
+      bottom: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: #994fbd;
+    }
+    #startBtn {
+      margin-top: 2rem;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      background: #ff77ff;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #startBtn:hover {
+      background: #ff44ff;
+    }
+  </style>
+</head>
+<body>
+  <button id="startBtn">Start Scanning💫</button>
+
+  <div class="camera-container" style="display:none;">
+    <video class="input_video" autoplay muted playsinline></video>
+    <canvas class="output_canvas"></canvas>
+    <canvas class="grid_canvas"></canvas>
+  </div>
+
+  <div class="results-panel">
+    <h2>Live Color Swatches</h2>
+    <div id="resultsContent"></div>
+  </div>
+
+  <script type="module">
+    import { initCameraAndHolistic } from './main.js';
+
+    document.getElementById('startBtn').addEventListener('click', () => {
+      document.querySelector('.camera-container').style.display = 'block';
+      document.getElementById('startBtn').style.display = 'none';
+      initCameraAndHolistic();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+</body>
+</html>
+
