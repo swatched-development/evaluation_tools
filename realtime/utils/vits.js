@@ -1,5 +1,5 @@
 export const FACE_SHAPES_CLASSES = ["Heart", "Oblong", "Oval", "Round", "Square"];
-export const SKIN_COLOR_CLASSES = ["Light", "TAN", "Medium", "Deep", "Dark", "Fair"];
+export const SKIN_COLOR_CLASSES =  ['deep' , 'fair',  'fair light' ,'medium', 'rich' , 'tan']//["Light", "TAN", "Medium", "Deep", "Dark", "Fair"];
 export class VITInferenceWeb {
     constructor(modelPath, classes) {
         this.classes = classes;

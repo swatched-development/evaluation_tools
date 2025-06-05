@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Real-time Facial Color Zones</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css"/>
   <style>
     .camera-container {
       position: relative;
@@ -16,7 +16,7 @@
       border: 2px solid #ffbdfc;
       margin-top: 40px;
     }
-    video.input_video, canvas.output_canvas {
+    video#webcam, canvas#output_canvas {
       position: absolute;
       top: 0;
       left: 0;
@@ -84,8 +84,8 @@
   <button id="startBtn">Start Scanning💫</button>
 
   <div class="camera-container" style="display:none;">
-    <video class="input_video" autoplay muted playsinline></video>
-    <canvas class="output_canvas"></canvas>
+    <video id="webcam" autoplay muted playsinline></video>
+    <canvas id="output_canvas"></canvas>
     <canvas class="grid_canvas"></canvas>
   </div>
 
@@ -95,16 +95,16 @@
   </div>
 
   <script type="module">
-    import { initCameraAndHolistic } from './main.js';
+    import { initFaceLandmarker } from './main.js';
 
     document.getElementById('startBtn').addEventListener('click', () => {
       document.querySelector('.camera-container').style.display = 'block';
       document.getElementById('startBtn').style.display = 'none';
-      initCameraAndHolistic();
+      initFaceLandmarker();
     });
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+  <!-- Ya no se necesita Holistic ni camera_utils -->
   <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 </body>
 </html>
