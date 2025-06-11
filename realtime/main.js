@@ -92,6 +92,7 @@ async function predictLoop() {
             })
            skinToneRunning = false;
            const correctedQuery = await corrected.json()
+           console.log(correctedQuery)
            let referenceProducts = ""
            let L=0
            correctedQuery.forEach((v)=> {
