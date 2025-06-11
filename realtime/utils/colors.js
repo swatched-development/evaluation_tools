@@ -35,5 +35,7 @@ export function getDominantColorFromRegion(landmarks, indices, canvas) {
   }
 
   const sorted = Object.entries(count).sort((a, b) => b[1] - a[1]);
-  return sorted.length > 0 ? `rgb(${sorted[0][0]})` : "rgb(0,0,0)";
+  if (sorted.length>0)
+    return sorted[0][0].split(",").map(parseFloat);
+  return null
 }

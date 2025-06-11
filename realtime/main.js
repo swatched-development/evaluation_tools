@@ -1,4 +1,3 @@
-// Adaptación de tu sistema de detección facial y zonas a MediaPipe Tasks Vision (face_landmarker)
 import vision from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3";
 import { zones, zoneColors } from './utils/zones.js';
 import { drawAllZones } from './utils/draw.js';
@@ -10,6 +9,8 @@ const video = document.getElementById("webcam");
 const canvasElement = document.getElementById("output_canvas");
 const resultsContent = document.getElementById("resultsContent");
 const canvasCtx = canvasElement.getContext("2d");
+const infoPanel = document.getElementById("info-panel")
+const COLOR_FINDER="https://8ix3xnvt0j.execute-api.us-east-1.amazonaws.com/prod/find-color"
 
 let faceLandmarker;
 let skinToneModel;
@@ -64,7 +65,7 @@ async function predictLoop() {
       drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_TESSELATION, { color: "#C0C0C070", lineWidth: 1 });
 
       drawAllZones(canvasCtx, landmarks, zones, zoneColors);
-      extractAndDisplayColors(landmarks);
+      const rgbColors = extractAndDisplayColors(landmarks);
       
       if (!skinToneRunning && !(counter%10)) {
         skinToneRunning = true;
@@ -75,9 +76,32 @@ async function predictLoop() {
         const tempCtx = tempCanvas.getContext("2d");
         tempCtx.drawImage(video, boundingBox.x, boundingBox.y, boundingBox.w, boundingBox.h, 0, 0, boundingBox.w, boundingBox.h);
 
-        skinToneModel.classify(tempCanvas).then((vitResult) => {
-          console.log("VIT Result:", vitResult);
-          skinToneRunning = false;
+        skinToneModel.classify(tempCanvas).then( async (vitResult) => {
+
+           const payload = {
+             vit_skintone  : vitResult,
+             camera_colors : rgbColors
+           }
+           const corrected= await fetch(COLOR_FINDER, {
+              method: "POST",
+              mode : "cors",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(payload)
+            })
+           skinToneRunning = false;
+           const correctedQuery = await corrected.json()
+           let referenceProducts = ""
+           let L=0
+           correctedQuery.forEach((v)=> {
+             L+=v["node.CIELAB_L"]
+             //referenceProducts+=`
+           })
+           L /=correctedQuery.length;
+           infoPanel.innerHTML+=`VIT Result: ${vitResult}<br>
+                                AverageCorrected L: ${L}`
+
         }).catch(err => {
           console.error("SkinTone classification error:", err);
           skinToneRunning = false;
@@ -110,18 +134,21 @@ function extractAndDisplayColors(landmarks) {
   scratchCanvas.height = video.videoHeight;
   const scratchCtx = scratchCanvas.getContext("2d");
   scratchCtx.drawImage(video, 0, 0);
+  const rgbColors =[]
 
   for (const zoneName in zones) {
     const indices = zones[zoneName];
     const domColor = getDominantColorFromRegion(landmarks, indices, scratchCanvas);
-
+    if (!domColor) continue
     const swatch = document.createElement("div");
     swatch.className = "color-swatch";
-    swatch.style.backgroundColor = domColor;
+    swatch.style.backgroundColor = `rgb(${domColor})`//domColor;
     const label = document.createElement("span");
     label.textContent = zoneName;
     swatch.appendChild(label);
     resultsContent.appendChild(swatch);
+    rgbColors.push(domColor)
   }
+  return rgbColors;
 }
 
