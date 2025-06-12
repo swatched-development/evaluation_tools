@@ -95,11 +95,14 @@ async function predictLoop() {
            console.log(correctedQuery)
            let referenceProducts = ""
            let L=0
-           correctedQuery.forEach((v)=> {
+           let N=0
+           correctedQuery.products.forEach((v)=> {
+             const l = v["node.CIELAB_L"]
+             if (isNaN(l*1)) return 
              L+=v["node.CIELAB_L"]
-             //referenceProducts+=`
+             N++;
            })
-           L /=correctedQuery.length;
+           L /=N;
            infoPanel.innerHTML+=`VIT Result: ${vitResult}<br>
                                 AverageCorrected L: ${L}`
 
