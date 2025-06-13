@@ -3,7 +3,7 @@ import { zones, zoneColors } from './utils/zones.js';
 import { drawAllZones } from './utils/draw.js';
 import { getDominantColorFromRegion } from './utils/colors.js';
 import { VITInferenceWeb, SKIN_COLOR_CLASSES } from './utils/vits.js';
-
+import { TFLiteInferenceHelper, drawHairCanvas} from './utils/hair.js';
 const { FaceLandmarker, FilesetResolver, DrawingUtils } = vision;
 const video = document.getElementById("webcam");
 const canvasElement = document.getElementById("output_canvas");
@@ -19,7 +19,10 @@ let lastVideoTime = -1;
 let webcamRunning = false;
 let skinToneRunning = false;
 
+const hairSegmenter = new TFLiteInferenceHelper({modelUrl:"/models/hair_segmenter.tflite"})
+
 export async function initFaceLandmarker() {
+  await hairSegmenter.load()
   const filesetResolver = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
   );
@@ -39,6 +42,7 @@ export async function initFaceLandmarker() {
   enableCamera();
 }
 
+
 async function enableCamera() {
   const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
   video.srcObject = stream;
@@ -47,6 +51,7 @@ async function enableCamera() {
   requestAnimationFrame(predictLoop);
 }
 let counter = 0
+
 async function predictLoop() {
   if (!webcamRunning) return;
   counter++
@@ -57,15 +62,15 @@ async function predictLoop() {
   const startTimeMs = performance.now();
   if (lastVideoTime !== video.currentTime) {
     lastVideoTime = video.currentTime;
+    const hairResults = await hairSegmenter.inferVideoFrame(video, startTimeMs)
     const result = await faceLandmarker.detectForVideo(video, startTimeMs);
     if (result.faceLandmarks.length > 0) {
       const landmarks = result.faceLandmarks[0];
-
       const drawingUtils = new DrawingUtils(canvasCtx);
       drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_TESSELATION, { color: "#C0C0C070", lineWidth: 1 });
-
+      const rgbColors =extractAndDisplayColors(landmarks);
+      const hairRgbColor=drawHairCanvas(canvasCtx,canvasElement,hairResults)
       drawAllZones(canvasCtx, landmarks, zones, zoneColors);
-      const rgbColors = extractAndDisplayColors(landmarks);
       
       if (!skinToneRunning && !(counter%10)) {
         skinToneRunning = true;
@@ -80,7 +85,8 @@ async function predictLoop() {
 
            const payload = {
              vit_skintone  : vitResult,
-             camera_colors : rgbColors
+             camera_colors : rgbColors,
+             camera_hair_color : hairRgbColor
            }
            const corrected= await fetch(COLOR_FINDER, {
               method: "POST",
@@ -92,10 +98,9 @@ async function predictLoop() {
             })
            skinToneRunning = false;
            const correctedQuery = await corrected.json()
-           console.log(correctedQuery)
-           let referenceProducts = ""
            let L=0
            let N=0
+           console.log(correctedQuery)
            correctedQuery.products.forEach((v)=> {
              const l = v["node.CIELAB_L"]
              if (isNaN(l*1)) return 
@@ -103,8 +108,16 @@ async function predictLoop() {
              N++;
            })
            L /=N;
-           infoPanel.innerHTML+=`VIT Result: ${vitResult}<br>
-                                AverageCorrected L: ${L}`
+           if (infoPanel){
+             infoPanel.innerHTML+=`VIT Result: ${vitResult}<br>
+                                AverageCorrected L: ${L}<br>`
+             if(correctedQuery.undertone){
+               infoPanel.innerHTML+=`Undertone: ${JSON.stringify(correctedQuery.undertone)+''} <br>` 
+             }
+             if (correctedQuery.hairColor){
+               infoPanel.innerHTML +=`HairColor: ${correctedQuery.hairColor}`
+             }
+           } 
 
         }).catch(err => {
           console.error("SkinTone classification error:", err);
@@ -143,7 +156,8 @@ function extractAndDisplayColors(landmarks) {
   for (const zoneName in zones) {
     const indices = zones[zoneName];
     const domColor = getDominantColorFromRegion(landmarks, indices, scratchCanvas);
-    if (!domColor) continue
+    rgbColors.push(domColor)
+    if (!domColor && !resultsContent) continue
     const swatch = document.createElement("div");
     swatch.className = "color-swatch";
     swatch.style.backgroundColor = `rgb(${domColor})`//domColor;
@@ -151,7 +165,6 @@ function extractAndDisplayColors(landmarks) {
     label.textContent = zoneName;
     swatch.appendChild(label);
     resultsContent.appendChild(swatch);
-    rgbColors.push(domColor)
   }
   return rgbColors;
 }
