@@ -38,7 +38,7 @@ export async function initFaceLandmarker() {
     numFaces: 1
   });
 
-  skinToneModel = new VITInferenceWeb("models/skin_tone_detector.onnx", SKIN_COLOR_CLASSES);
+  skinToneModel = new VITInferenceWeb("/realtime/models/skin_tone_detector.onnx", SKIN_COLOR_CLASSES);
   enableCamera();
 }
 
