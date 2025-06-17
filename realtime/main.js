@@ -101,10 +101,9 @@ async function predictLoop() {
            let L=0
            let N=0
            console.log(correctedQuery)
-           correctedQuery.products.forEach((v)=> {
-             const l = v["node.CIELAB_L"]
-             if (isNaN(l*1)) return 
-             L+=v["node.CIELAB_L"]
+           correctedQuery.corrected_l.forEach((v)=> {
+             if (isNaN(v*1)) return 
+             L+=v
              N++;
            })
            L /=N;
