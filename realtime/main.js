@@ -20,8 +20,9 @@ let webcamRunning = false;
 let skinToneRunning = false;
 
 const hairSegmenter = new TFLiteInferenceHelper({modelUrl:"models/hair_segmenter.tflite"})
-
-export async function initFaceLandmarker() {
+let onFaceAnalysisResultCallback = null;
+export async function initFaceLandmarker(onResult) {
+  onFaceAnalysisResultCallback=onResult
   await hairSegmenter.load()
   const filesetResolver = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
@@ -116,7 +117,16 @@ async function predictLoop() {
              if (correctedQuery.hairColor){
                infoPanel.innerHTML +=`HairColor: ${correctedQuery.hairColor}`
              }
-           } 
+           }
+           if (onFaceAnalysisResultCallback){
+             onFaceAnalysisResultCallback({
+               "vitSkinTone"        : vitResult,
+               "estimatedLValue"    : L,
+               "undertoneHistogram" : correctedQuery.undertone,
+               "hairColor"          : correctedQuery.hairColor
+             })
+          }
+           
 
         }).catch(err => {
           console.error("SkinTone classification error:", err);
@@ -159,11 +169,12 @@ function extractAndDisplayColors(landmarks) {
     if (!domColor && !resultsContent) continue
     const swatch = document.createElement("div");
     swatch.className = "color-swatch";
-    swatch.style.backgroundColor = `rgb(${domColor})`//domColor;
+    swatch.style.backgroundColor = `rgb(${domColor})`
     const label = document.createElement("span");
     label.textContent = zoneName;
     swatch.appendChild(label);
-    resultsContent.appendChild(swatch);
+    if (resultsContent)
+      resultsContent.appendChild(swatch);
   }
   return rgbColors;
 }
