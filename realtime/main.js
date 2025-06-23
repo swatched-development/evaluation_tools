@@ -81,13 +81,15 @@ async function predictLoop() {
         tempCanvas.height = boundingBox.h;
         const tempCtx = tempCanvas.getContext("2d");
         tempCtx.drawImage(video, boundingBox.x, boundingBox.y, boundingBox.w, boundingBox.h, 0, 0, boundingBox.w, boundingBox.h);
+        const b64Face = tempCanvas.toDataURL("image/png").split(';base64,')[1]
 
         skinToneModel.classify(tempCanvas).then( async (vitResult) => {
 
            const payload = {
              vit_skintone  : vitResult,
              camera_colors : rgbColors,
-             camera_hair_color : hairRgbColor
+             camera_hair_color : hairRgbColor,
+             camera_image  : b64Face
            }
            const corrected= await fetch(COLOR_FINDER, {
               method: "POST",
@@ -115,7 +117,10 @@ async function predictLoop() {
                infoPanel.innerHTML+=`Undertone: ${JSON.stringify(correctedQuery.undertone)+''} <br>` 
              }
              if (correctedQuery.hairColor){
-               infoPanel.innerHTML +=`HairColor: ${correctedQuery.hairColor}`
+               infoPanel.innerHTML +=`HairColor: ${correctedQuery.hairColor}<br>`
+             }
+             if (correctedQuery.skinConcerns){
+               infoPanel.innerHTML+=`SkinConcerns: ${correctedQuery.skinConcerns}<br>`
              }
            }
            if (onFaceAnalysisResultCallback){
@@ -123,7 +128,8 @@ async function predictLoop() {
                "vitSkinTone"        : vitResult,
                "estimatedLValue"    : L,
                "undertoneHistogram" : correctedQuery.undertone,
-               "hairColor"          : correctedQuery.hairColor
+               "hairColor"          : correctedQuery.hairColor,
+               "skinConcerns"       : correctedQuery.skinConcerns
              })
           }
            
