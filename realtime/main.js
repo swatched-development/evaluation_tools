@@ -19,7 +19,7 @@ let lastVideoTime = -1;
 let webcamRunning = false;
 let skinToneRunning = false;
 
-const hairSegmenter = new TFLiteInferenceHelper({modelUrl:"models/hair_segmenter.tflite"})
+const hairSegmenter = new TFLiteInferenceHelper({modelUrl:"https://swatched-development.github.io/evaluation_tools/realtime/models/hair_segmenter.tflite"})
 let onFaceAnalysisResultCallback = null;
 export async function initFaceLandmarker(onResult) {
   onFaceAnalysisResultCallback=onResult
@@ -39,7 +39,7 @@ export async function initFaceLandmarker(onResult) {
     numFaces: 1
   });
 
-  skinToneModel = new VITInferenceWeb("models/skin_tone_detector.onnx", SKIN_COLOR_CLASSES);
+  skinToneModel = new VITInferenceWeb("https://swatched-development.github.io/evaluation_tools/realtime/models/skin_tone_detector.onnx", SKIN_COLOR_CLASSES);
   enableCamera();
 }
 
