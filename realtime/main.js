@@ -160,7 +160,8 @@ function getBoundingBoxFromLandmarks(landmarks) {
 }
 
 function extractAndDisplayColors(landmarks) {
-  resultsContent.innerHTML = "";
+  if (resultsContent)
+    resultsContent.innerHTML = "";
   const scratchCanvas = document.createElement("canvas");
   scratchCanvas.width = video.videoWidth;
   scratchCanvas.height = video.videoHeight;
