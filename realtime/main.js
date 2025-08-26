@@ -103,7 +103,6 @@ async function predictLoop() {
            const correctedQuery = await corrected.json()
            let L=0
            let N=0
-           console.log(correctedQuery)
            correctedQuery.corrected_l.forEach((v)=> {
              if (isNaN(v*1)) return 
              L+=v
@@ -124,13 +123,24 @@ async function predictLoop() {
              }
            }
            if (onFaceAnalysisResultCallback){
-             onFaceAnalysisResultCallback({
+             const resultPayload ={
                "vitSkinTone"        : vitResult,
                "estimatedLValue"    : L,
                "undertoneHistogram" : correctedQuery.undertone,
                "hairColor"          : correctedQuery.hairColor,
-               "skinConcerns"       : correctedQuery.skinConcerns
-             })
+             }
+             let otherFindings = correctedQuery.geminiFindings;
+             try{
+               if (typeof(otherFindings) == 'string'){
+                 otherFindings = JSON.parse(JSON.parse(otherFindings));
+                 resultPayload.otherFindings = otherFindings;
+                 resultPayload.skinConcerns = otherFindings.skinConerns;
+                 delete otherFindings.skinConerns
+               }
+             }catch(e){
+             }
+             onFaceAnalysisResultCallback(resultPayload)
+
           }
            
 
