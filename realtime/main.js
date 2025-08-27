@@ -4,6 +4,7 @@ import { drawAllZones } from './utils/draw.js';
 import { getDominantColorFromRegion } from './utils/colors.js';
 import { VITInferenceWeb, SKIN_COLOR_CLASSES } from './utils/vits.js';
 import { TFLiteInferenceHelper, drawHairCanvas} from './utils/hair.js';
+import { createFaceMaskedImage } from './utils/faceUtils.js';
 const { FaceLandmarker, FilesetResolver, DrawingUtils } = vision;
 const video = document.getElementById("webcam");
 const canvasElement = document.getElementById("output_canvas");
@@ -75,15 +76,10 @@ async function predictLoop() {
       
       if (!skinToneRunning && !(counter%10)) {
         skinToneRunning = true;
-        const boundingBox = getBoundingBoxFromLandmarks(landmarks);
-        const tempCanvas = document.createElement("canvas");
-        tempCanvas.width = boundingBox.w;
-        tempCanvas.height = boundingBox.h;
-        const tempCtx = tempCanvas.getContext("2d");
-        tempCtx.drawImage(video, boundingBox.x, boundingBox.y, boundingBox.w, boundingBox.h, 0, 0, boundingBox.w, boundingBox.h);
-        const b64Face = tempCanvas.toDataURL("image/png").split(';base64,')[1]
+        const maskedFaceCanvas = createFaceMaskedImage(video, landmarks);
+        const b64Face = maskedFaceCanvas.toDataURL("image/png").split(';base64,')[1]
 
-        skinToneModel.classify(tempCanvas).then( async (vitResult) => {
+        skinToneModel.classify(maskedFaceCanvas).then( async (vitResult) => {
 
            const payload = {
              vit_skintone  : vitResult,
