@@ -120,6 +120,8 @@ async function predictLoop() {
                  resultPayload.otherFindings = otherFindings;
                  resultPayload.skinConcerns = otherFindings.skinConerns;
                  resultPayload.vitSkinTone = otherFindings.skinTone;
+                 resultPayload.faceShape = otherFindings.faceShape;
+                 resultPayload.eyeColor = otherFindings.eyeColor;
                  delete otherFindings.skinConerns
                }
              }catch(e){
