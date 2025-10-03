@@ -131,6 +131,7 @@ async function predictLoop() {
                  otherFindings = JSON.parse(JSON.parse(otherFindings));
                  resultPayload.otherFindings = otherFindings;
                  resultPayload.skinConcerns = otherFindings.skinConerns;
+                 resultPayload.vitSkinTone = otherFindings.skinTone;
                  delete otherFindings.skinConerns
                }
              }catch(e){
