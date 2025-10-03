@@ -105,19 +105,7 @@ async function predictLoop() {
              N++;
            })
            L /=N;
-           if (infoPanel){
-             infoPanel.innerHTML+=`VIT Result: ${vitResult}<br>
-                                AverageCorrected L: ${L}<br>`
-             if(correctedQuery.undertone){
-               infoPanel.innerHTML+=`Undertone: ${JSON.stringify(correctedQuery.undertone)+''} <br>` 
-             }
-             if (correctedQuery.hairColor){
-               infoPanel.innerHTML +=`HairColor: ${correctedQuery.hairColor}<br>`
-             }
-             if (correctedQuery.skinConcerns){
-               infoPanel.innerHTML+=`SkinConcerns: ${correctedQuery.skinConcerns}<br>`
-             }
-           }
+
            if (onFaceAnalysisResultCallback){
              const resultPayload ={
                "vitSkinTone"        : vitResult,
@@ -136,6 +124,20 @@ async function predictLoop() {
                }
              }catch(e){
              }
+             if (infoPanel){
+               infoPanel.innerHTML+=`VIT Result: ${vitResult}<br>
+                                AverageCorrected L: ${L}<br>`
+               if(correctedQuery.undertone){
+                 infoPanel.innerHTML+=`Undertone: ${JSON.stringify(correctedQuery.undertone)+''} <br>` 
+               }
+               if (correctedQuery.hairColor){
+                 infoPanel.innerHTML +=`HairColor: ${correctedQuery.hairColor}<br>`
+               }
+               if (correctedQuery.skinConcerns){
+                 infoPanel.innerHTML+=`SkinConcerns: ${correctedQuery.skinConcerns}<br>`
+               }
+             }
+
              onFaceAnalysisResultCallback(resultPayload)
 
           }
