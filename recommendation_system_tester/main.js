@@ -17,6 +17,8 @@ function addFilter() {
                     <option value="eq">Equal</option>
                     <option value="le">Less or Equal</option>
                     <option value="ge">Greater or Equal</option>
+                    <option value="has">Has(contains)</option>
+
                 </select>
                 <input type="text" placeholder="Value" name="value" required>
                 <button type="button" onclick="this.parentElement.remove()">Remove</button>
