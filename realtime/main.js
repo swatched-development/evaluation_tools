@@ -86,7 +86,7 @@ async function predictLoop() {
       const hairRgbColor=drawHairCanvas(canvasCtx,canvasElement,hairResults)
       drawAllZones(canvasCtx, landmarks, zones, zoneColors);
       
-      if (!skinToneRunning && !(counter%10)) {
+      if (!skinToneRunning && !(counter%6)) {
         skinToneRunning = true;
         const maskedFaceCanvas = createFaceMaskedImage(video, landmarks);
         const b64Face = maskedFaceCanvas.toDataURL("image/png").split(';base64,')[1]
