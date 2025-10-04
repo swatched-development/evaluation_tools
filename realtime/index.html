@@ -145,13 +145,13 @@
     window.stopper = stopCamera;
     window.starter = enableCamera
 
-    document.getElementById('startBtn').addEventListener('click', () => {
+    document.getElementById('startBtn').addEventListener('click', async () => {
       document.querySelector('.layout-container').style.display = 'flex';
       document.getElementById('startBtn').style.display = 'none';
-      initFaceLandmarker( async (result)=>{
+      await initFaceLandmarker( async (result)=>{
          console.log("Called Correctly",result)
       })
-      setTimeout(enableCamera,2000);
+      await enableCamera();
     });
   </script>
 
