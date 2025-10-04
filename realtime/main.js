@@ -42,7 +42,7 @@ export async function initFaceLandmarker(onResult) {
   });
 
   skinToneModel = new VITInferenceWeb("https://swatched-development.github.io/evaluation_tools/realtime/models/skin_tone_detector.onnx", SKIN_COLOR_CLASSES);
-  enableCamera();
+  //enableCamera();
 }
 
 export function stopCamera() {
@@ -55,7 +55,7 @@ export function stopCamera() {
 }
 
 
-async function enableCamera() {
+export async function enableCamera() {
   const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
   video.srcObject = stream;
   await video.play();
