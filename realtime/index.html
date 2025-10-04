@@ -148,7 +148,7 @@
     document.getElementById('startBtn').addEventListener('click', async () => {
       document.querySelector('.layout-container').style.display = 'flex';
       document.getElementById('startBtn').style.display = 'none';
-      await initFaceLandmarker( async (result)=>{
+      await initFaceLandmarker((result)=>{
          console.log("Called Correctly",result)
       })
       await enableCamera();
