@@ -22,6 +22,7 @@ let skinToneRunning = false;
 
 const hairSegmenter = new TFLiteInferenceHelper({modelUrl:"https://swatched-development.github.io/evaluation_tools/realtime/models/hair_segmenter.tflite"})
 let onFaceAnalysisResultCallback = null;
+
 export async function initFaceLandmarker(onResult) {
   onFaceAnalysisResultCallback=onResult
   await hairSegmenter.load()
@@ -42,6 +43,15 @@ export async function initFaceLandmarker(onResult) {
 
   skinToneModel = new VITInferenceWeb("https://swatched-development.github.io/evaluation_tools/realtime/models/skin_tone_detector.onnx", SKIN_COLOR_CLASSES);
   enableCamera();
+}
+
+export function stopCamera() {
+  webcamRunning = false;
+  skinToneRunning = false;
+  if (video.srcObject) {
+    video.srcObject.getTracks().forEach(track => track.stop());
+    video.srcObject = null;
+  }
 }
 
 
