@@ -42,7 +42,7 @@ export async function initFaceLandmarker(onResult,skipEnableCamera) {
   });
 
   skinToneModel = new VITInferenceWeb("https://swatched-development.github.io/evaluation_tools/realtime/models/skin_tone_detector.onnx", SKIN_COLOR_CLASSES);
-  if (skipEnableCamera) return;
+  if (skipEnableCamera===true) return;
 
   enableCamera();
 }
