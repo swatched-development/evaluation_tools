@@ -140,18 +140,24 @@
   </div>
 
   <script type="module">
-    import { initFaceLandmarker,stopCamera,enableCamera} from 'https://swatched-development.github.io/evaluation_tools/realtime/main.js';
+    import { initFaceLandmarker, stopCamera, enableCamera, drawFaceBoundingBox } from '/main.js' //'https://swatched-development.github.io/evaluation_tools/realtime_dev/main.js';
 
     window.stopper = stopCamera;
     window.starter = enableCamera
 
+    function onPerFrame(frameData) {
+      // Paint bounding box every frame
+      drawFaceBoundingBox(frameData.boundingBox);
+    }
+
+    function onFinalResult(result) {
+      console.log("Analysis result:", result);
+    }
+
     document.getElementById('startBtn').addEventListener('click', async () => {
       document.querySelector('.layout-container').style.display = 'flex';
       document.getElementById('startBtn').style.display = 'none';
-      await initFaceLandmarker((result)=>{
-         console.log("Called Correctly",result)
-      },true)
-      //await enableCamera();
+      await initFaceLandmarker(onFinalResult, onPerFrame, false)
     });
   </script>
 

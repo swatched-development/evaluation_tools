@@ -39,6 +39,38 @@ export function drawHairCanvas(ctx, canvas, result) {
   return sorted.length ? sorted[0][0].split(",").map(Number) : null;
 }
 
+export function getHairColor(result) {
+  const mask = result.categoryMask.getAsUint8Array();
+  const width = result.categoryMask.width;
+  const height = result.categoryMask.height;
+
+  const scratchCanvas = document.createElement("canvas");
+  scratchCanvas.width = width;
+  scratchCanvas.height = height;
+  const scratchCtx = scratchCanvas.getContext("2d");
+  
+  const video = document.getElementById("webcam");
+  scratchCtx.drawImage(video, 0, 0, width, height);
+  
+  const imageData = scratchCtx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+  const count = {};
+
+  for (let i = 0; i < mask.length; i++) {
+    if (mask[i] === 1) {
+      const idx = i * 4;
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
+      const key = `${r},${g},${b}`;
+      count[key] = (count[key] || 0) + 1;
+    }
+  }
+
+  const sorted = Object.entries(count).sort((a, b) => b[1] - a[1]);
+  return sorted.length ? sorted[0][0].split(",").map(Number) : null;
+}
+
 /**
  * Headless TFLite inference helper for arbitrary MediaPipe models.
  */

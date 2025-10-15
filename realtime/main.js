@@ -2,8 +2,8 @@ import vision from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3"
 import { zones, zoneColors } from './utils/zones.js';
 import { drawAllZones } from './utils/draw.js';
 import { getDominantColorFromRegion } from './utils/colors.js';
-import { VITInferenceWeb, SKIN_COLOR_CLASSES } from './utils/vits.js';
-import { TFLiteInferenceHelper, drawHairCanvas} from './utils/hair.js';
+// import { VITInferenceWeb, SKIN_COLOR_CLASSES } from './utils/vits.js';
+// import { TFLiteInferenceHelper, drawHairCanvas, getHairColor} from './utils/hair.js';
 import { createFaceMaskedImage } from './utils/faceUtils.js';
 const { FaceLandmarker, FilesetResolver, DrawingUtils } = vision;
 const video = document.getElementById("webcam");
@@ -14,18 +14,22 @@ const infoPanel = document.getElementById("info-panel")
 const COLOR_FINDER="https://8ix3xnvt0j.execute-api.us-east-1.amazonaws.com/prod/find-color"
 
 let faceLandmarker;
-let skinToneModel;
+// let skinToneModel;
 let runningMode = "VIDEO";
 let lastVideoTime = -1;
 let webcamRunning = false;
 let skinToneRunning = false;
 
-const hairSegmenter = new TFLiteInferenceHelper({modelUrl:"https://swatched-development.github.io/evaluation_tools/realtime/models/hair_segmenter.tflite"})
+// const hairSegmenter = new TFLiteInferenceHelper({modelUrl:"https://swatched-development.github.io/evaluation_tools/realtime/models/hair_segmenter.tflite"})
 let onFaceAnalysisResultCallback = null;
+let onPerFrameCallback = null;
+let faceBoundingBox = null;
 
-export async function initFaceLandmarker(onResult,skipEnableCamera) {
+export async function initFaceLandmarker(onResult, onPerFrame, skipEnableCamera) {
   onFaceAnalysisResultCallback=onResult
-  await hairSegmenter.load()
+  onPerFrameCallback=onPerFrame
+  // await hairSegmenter.load()
+  createFaceBoundingBoxOverlay();
   const filesetResolver = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
   );
@@ -34,14 +38,14 @@ export async function initFaceLandmarker(onResult,skipEnableCamera) {
     baseOptions: {
       modelAssetPath:
         "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-      delegate: "GPU"
+      delegate: "CPU"
     },
     outputFaceBlendshapes: false,
     runningMode,
     numFaces: 1
   });
 
-  skinToneModel = new VITInferenceWeb("https://swatched-development.github.io/evaluation_tools/realtime/models/skin_tone_detector.onnx", SKIN_COLOR_CLASSES);
+  // skinToneModel = new VITInferenceWeb("https://swatched-development.github.io/evaluation_tools/realtime/models/skin_tone_detector.onnx", SKIN_COLOR_CLASSES);
   if (skipEnableCamera===true) return;
 
   enableCamera();
@@ -76,89 +80,91 @@ async function predictLoop() {
   const startTimeMs = performance.now();
   if (lastVideoTime !== video.currentTime) {
     lastVideoTime = video.currentTime;
-    const hairResults = await hairSegmenter.inferVideoFrame(video, startTimeMs)
+    // const hairResults = await hairSegmenter.inferVideoFrame(video, startTimeMs)
     const result = await faceLandmarker.detectForVideo(video, startTimeMs);
     if (result.faceLandmarks.length > 0) {
       const landmarks = result.faceLandmarks[0];
-      const drawingUtils = new DrawingUtils(canvasCtx);
-      drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_TESSELATION, { color: "#C0C0C070", lineWidth: 1 });
       const rgbColors =extractAndDisplayColors(landmarks);
-      const hairRgbColor=drawHairCanvas(canvasCtx,canvasElement,hairResults)
-      drawAllZones(canvasCtx, landmarks, zones, zoneColors);
+      // const hairRgbColor=getHairColor(hairResults)
+      const hairRgbColor = null;
+      const boundingBox = getBoundingBoxFromLandmarks(landmarks);
+      
+      if (onPerFrameCallback) {
+        onPerFrameCallback({
+          boundingBox: boundingBox,
+          landmarks: landmarks,
+          rgbColors: rgbColors
+        });
+      } else {
+        updateFaceBoundingBox(boundingBox);
+      }
       
       if (!skinToneRunning && !(counter%6)) {
         skinToneRunning = true;
         const maskedFaceCanvas = createFaceMaskedImage(video, landmarks);
         const b64Face = maskedFaceCanvas.toDataURL("image/png").split(';base64,')[1]
 
-        skinToneModel.classify(maskedFaceCanvas).then( async (vitResult) => {
+        const payload = {
+          camera_colors : [],
+          camera_hair_color : [],
+          camera_image  : b64Face
+        }
+        
+        fetch(COLOR_FINDER, {
+          method: "POST",
+          mode : "cors",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        }).then(async (corrected) => {
+          skinToneRunning = false;
+          const correctedQuery = await corrected.json()
+          let L=0
+          let N=0
+          correctedQuery.corrected_l.forEach((v)=> {
+            if (isNaN(v*1)) return 
+            L+=v
+            N++;
+          })
+          L /=N;
 
-           const payload = {
-             vit_skintone  : vitResult,
-             camera_colors : rgbColors,
-             camera_hair_color : hairRgbColor,
-             camera_image  : b64Face
-           }
-           const corrected= await fetch(COLOR_FINDER, {
-              method: "POST",
-              mode : "cors",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify(payload)
-            })
-           skinToneRunning = false;
-           const correctedQuery = await corrected.json()
-           let L=0
-           let N=0
-           correctedQuery.corrected_l.forEach((v)=> {
-             if (isNaN(v*1)) return 
-             L+=v
-             N++;
-           })
-           L /=N;
+          if (onFaceAnalysisResultCallback){
+            let geminiSkinTone = null;
+            let geminiHairColor = null;
+            let otherFindings = correctedQuery.geminiFindings;
+            try{
+              if (typeof(otherFindings) == 'string'){
+                otherFindings = JSON.parse(JSON.parse(otherFindings));
+                geminiSkinTone = otherFindings.skinTone;
+                geminiHairColor = otherFindings.hairColor;
+              }
+            }catch(e){
+            }
 
-           if (onFaceAnalysisResultCallback){
-             const resultPayload ={
-               "vitSkinTone"        : vitResult,
-               "estimatedLValue"    : L,
-               "undertoneHistogram" : correctedQuery.undertone,
-               "hairColor"          : correctedQuery.hairColor,
-             }
-             let otherFindings = correctedQuery.geminiFindings;
-             try{
-               if (typeof(otherFindings) == 'string'){
-                 otherFindings = JSON.parse(JSON.parse(otherFindings));
-                 resultPayload.otherFindings = otherFindings;
-                 resultPayload.skinConcerns = otherFindings.skinConerns;
-                 resultPayload.vitSkinTone = otherFindings.skinTone;
-                 resultPayload.faceShape = otherFindings.faceShape;
-                 resultPayload.eyeColor = otherFindings.eyeColor;
-                 delete otherFindings.skinConerns
-               }
-             }catch(e){
-             }
-             if (infoPanel){
-               infoPanel.innerHTML+=`VIT Result: ${vitResult}<br>
-                                AverageCorrected L: ${L}<br>`
-               if(correctedQuery.undertone){
-                 infoPanel.innerHTML+=`Undertone: ${JSON.stringify(correctedQuery.undertone)+''} <br>` 
-               }
-               if (correctedQuery.hairColor){
-                 infoPanel.innerHTML +=`HairColor: ${correctedQuery.hairColor}<br>`
-               }
-               if (correctedQuery.skinConcerns){
-                 infoPanel.innerHTML+=`SkinConcerns: ${correctedQuery.skinConcerns}<br>`
-               }
-             }
+            const resultPayload ={
+              "boundingBox"        : boundingBox,
+              "vitSkinTone"        : geminiSkinTone,
+              "estimatedLValue"    : L,
+              "undertoneHistogram" : correctedQuery.undertone,
+              "hairColor"          : geminiHairColor || correctedQuery.hairColor,
+            }
+            if (otherFindings) {
+              resultPayload.otherFindings = otherFindings;
+              resultPayload.skinConcerns = otherFindings.skinConerns;
+              resultPayload.faceShape = otherFindings.faceShape;
+              resultPayload.eyeColor = otherFindings.eyeColor;
+            }
+            if (infoPanel){
+              if (geminiSkinTone){
+                infoPanel.innerHTML+=`Skin Tone: ${geminiSkinTone}<br>`
+              }
+            }
 
-             onFaceAnalysisResultCallback(resultPayload)
-
+            onFaceAnalysisResultCallback(resultPayload)
           }
-           
-
         }).catch(err => {
-          console.error("SkinTone classification error:", err);
+          console.error("Color finder error:", err);
           skinToneRunning = false;
         });
       }
@@ -207,5 +213,39 @@ function extractAndDisplayColors(landmarks) {
       resultsContent.appendChild(swatch);
   }
   return rgbColors;
+}
+
+function createFaceBoundingBoxOverlay() {
+  if (!faceBoundingBox) {
+    faceBoundingBox = document.createElement('div');
+    faceBoundingBox.id = 'face-bounding-box';
+    faceBoundingBox.style.cssText = `
+      position: absolute;
+      border: 2px solid #00ff00;
+      background: transparent;
+      pointer-events: none;
+      z-index: 10;
+      display: none;
+    `;
+    document.body.appendChild(faceBoundingBox);
+  }
+}
+
+function updateFaceBoundingBox(boundingBox) {
+  if (!faceBoundingBox || !boundingBox) return;
+  
+  const canvasRect = canvasElement.getBoundingClientRect();
+  const scaleX = canvasRect.width / canvasElement.width;
+  const scaleY = canvasRect.height / canvasElement.height;
+  
+  faceBoundingBox.style.left = (canvasRect.left + boundingBox.x * scaleX) + 'px';
+  faceBoundingBox.style.top = (canvasRect.top + boundingBox.y * scaleY) + 'px';
+  faceBoundingBox.style.width = (boundingBox.w * scaleX) + 'px';
+  faceBoundingBox.style.height = (boundingBox.h * scaleY) + 'px';
+  faceBoundingBox.style.display = 'block';
+}
+
+export function drawFaceBoundingBox(boundingBox) {
+  updateFaceBoundingBox(boundingBox);
 }
 
