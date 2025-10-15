@@ -25,9 +25,9 @@ let onFaceAnalysisResultCallback = null;
 let onPerFrameCallback = null;
 let faceBoundingBox = null;
 
-export async function initFaceLandmarker(onResult, onPerFrame, skipEnableCamera) {
+export async function initFaceLandmarker(onResult, /*onPerFrame,*/ skipEnableCamera) {
   onFaceAnalysisResultCallback=onResult
-  onPerFrameCallback=onPerFrame
+  onPerFrameCallback=undefined;onPerFrame
   // await hairSegmenter.load()
   createFaceBoundingBoxOverlay();
   const filesetResolver = await FilesetResolver.forVisionTasks(
