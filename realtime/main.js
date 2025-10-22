@@ -11,7 +11,9 @@ const canvasElement = document.getElementById("output_canvas");
 const resultsContent = document.getElementById("resultsContent");
 const canvasCtx = canvasElement.getContext("2d");
 const infoPanel = document.getElementById("info-panel")
-const COLOR_FINDER="https://8ix3xnvt0j.execute-api.us-east-1.amazonaws.com/prod/find-color"
+
+let COLOR_FINDER="https://8ix3xnvt0j.execute-api.us-east-1.amazonaws.com/prod/find-color"
+
 
 let faceLandmarker;
 // let skinToneModel;
@@ -24,8 +26,19 @@ let skinToneRunning = false;
 let onFaceAnalysisResultCallback = null;
 let onPerFrameCallback = null;
 let faceBoundingBox = null;
+let environmentID="8ix3xnvt0j"
+let transactionID=null
+export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_id,environment="dev") {
+  
+  transactionID=transaction_id;
+  environmentID={
+    "dev" : "8ix3xnvt0j",
+    "stg" : "kk2ztajnbb",
+    "prod": "bjcl0ah4nk"
+  }[environment];
+  COLOR_FINDER=`https://${environmentID}.execute-api.us-east-1.amazonaws.com/prod/find-color`
 
-export async function initFaceLandmarker(onResult, /*onPerFrame,*/ skipEnableCamera) {
+
   onFaceAnalysisResultCallback=onResult
   onPerFrameCallback=undefined;//onPerFrame
   // await hairSegmenter.load()
@@ -107,7 +120,8 @@ async function predictLoop() {
         const payload = {
           camera_colors : [],
           camera_hair_color : [],
-          camera_image  : b64Face
+          camera_image  : b64Face,
+          transaction_id: transactionID
         }
         
         fetch(COLOR_FINDER, {
@@ -147,7 +161,7 @@ async function predictLoop() {
               "vitSkinTone"        : geminiSkinTone,
               "estimatedLValue"    : L,
               "undertoneHistogram" : correctedQuery.undertone,
-              "hairColor"          : geminiHairColor || correctedQuery.hairColor,
+              "hairColor"          : geminiHairColor || correctedQuery.hairColor
             }
             if (otherFindings) {
               resultPayload.otherFindings = otherFindings;
