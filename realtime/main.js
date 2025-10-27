@@ -28,6 +28,11 @@ let onPerFrameCallback = null;
 let faceBoundingBox = null;
 let environmentID="8ix3xnvt0j"
 let transactionID=null
+
+export function setTransactionId(newId){
+  transactionID = newId;
+}
+
 export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_id,environment="dev") {
   
   transactionID=transaction_id;
