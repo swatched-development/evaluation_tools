@@ -38,8 +38,8 @@ export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_
   transactionID=transaction_id;
   environmentID={
     "dev" : "8ix3xnvt0j",
-    "stg" : "kk2ztajnbb",
-    "prod": "bjcl0ah4nk"
+    "prod" : "kk2ztajnbb",
+    "stg": "bjcl0ah4nk"
   }[environment];
   COLOR_FINDER=`https://${environmentID}.execute-api.us-east-1.amazonaws.com/prod/find-color`
 
