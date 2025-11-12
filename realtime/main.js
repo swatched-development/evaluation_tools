@@ -141,12 +141,13 @@ async function predictLoop() {
           const correctedQuery = await corrected.json()
           let L=0
           let N=0
+          /*
           correctedQuery.corrected_l.forEach((v)=> {
             if (isNaN(v*1)) return 
             L+=v
             N++;
           })
-          L /=N;
+          L /=N;*/
 
           if (onFaceAnalysisResultCallback){
             let geminiSkinTone = null;
