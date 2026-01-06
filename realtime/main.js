@@ -12,8 +12,7 @@ const resultsContent = document.getElementById("resultsContent");
 const canvasCtx = canvasElement.getContext("2d");
 const infoPanel = document.getElementById("info-panel")
 
-let COLOR_FINDER="https://8ix3xnvt0j.execute-api.us-east-1.amazonaws.com/prod/find-color"
-
+let COLOR_FINDER="https://8ix3xnvt0j.execute-api.us-east-1.amazonaws.com/prod/aiface"
 
 let faceLandmarker;
 // let skinToneModel;
@@ -41,7 +40,7 @@ export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_
     "prod" : "kk2ztajnbb",
     "stg": "bjcl0ah4nk"
   }[environment];
-  COLOR_FINDER=`https://${environmentID}.execute-api.us-east-1.amazonaws.com/prod/find-color`
+  //COLOR_FINDER=`https://${environmentID}.execute-api.us-east-1.amazonaws.com/prod/iaface`
 
 
   onFaceAnalysisResultCallback=onResult
@@ -63,7 +62,6 @@ export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_
     numFaces: 1
   });
 
-  // skinToneModel = new VITInferenceWeb("https://swatched-development.github.io/evaluation_tools/realtime/models/skin_tone_detector.onnx", SKIN_COLOR_CLASSES);
   if (skipEnableCamera===true) return;
 
   enableCamera();
@@ -120,73 +118,85 @@ async function predictLoop() {
       if (!skinToneRunning && !(counter%6)) {
         skinToneRunning = true;
         const maskedFaceCanvas = createFaceMaskedImage(video, landmarks);
-        const b64Face = maskedFaceCanvas.toDataURL("image/png").split(';base64,')[1]
 
-        const payload = {
-          camera_colors : [],
-          camera_hair_color : [],
-          camera_image  : b64Face,
-          transaction_id: transactionID
-        }
-        
-        fetch(COLOR_FINDER, {
-          method: "POST",
-          mode : "cors",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
-        }).then(async (corrected) => {
-          skinToneRunning = false;
-          const correctedQuery = await corrected.json()
-          let L=0
-          let N=0
-          /*
-          correctedQuery.corrected_l.forEach((v)=> {
-            if (isNaN(v*1)) return 
-            L+=v
-            N++;
-          })
-          L /=N;*/
-
-          if (onFaceAnalysisResultCallback){
-            let geminiSkinTone = null;
-            let geminiHairColor = null;
-            let otherFindings = correctedQuery.geminiFindings;
-            try{
-              if (typeof(otherFindings) == 'string'){
-                otherFindings = JSON.parse(JSON.parse(otherFindings));
-                geminiSkinTone = otherFindings.skinTone;
-                geminiHairColor = otherFindings.hairColor;
-              }
-            }catch(e){
-            }
-
-            const resultPayload ={
-              "boundingBox"        : boundingBox,
-              "vitSkinTone"        : geminiSkinTone,
-              "estimatedLValue"    : L,
-              "undertoneHistogram" : correctedQuery.undertone,
-              "hairColor"          : geminiHairColor || correctedQuery.hairColor
-            }
-            if (otherFindings) {
-              resultPayload.otherFindings = otherFindings;
-              resultPayload.skinConcerns = otherFindings.skinConerns;
-              resultPayload.faceShape = otherFindings.faceShape;
-              resultPayload.eyeColor = otherFindings.eyeColor;
-            }
-            if (infoPanel){
-              if (geminiSkinTone){
-                infoPanel.innerHTML+=`Skin Tone: ${geminiSkinTone}<br>`
-              }
-            }
-
-            onFaceAnalysisResultCallback(resultPayload)
+        maskedFaceCanvas.toBlob(async (blob) => {
+          if (!blob) {
+            skinToneRunning = false;
+            return;
           }
-        }).catch(err => {
-          console.error("Color finder error:", err);
-          skinToneRunning = false;
-        });
+
+          const reader = new FileReader();
+          reader.readAsArrayBuffer(blob);
+          reader.onload = async function(e) {
+            const imageData = e.target.result;
+
+            const url = new URL(COLOR_FINDER);
+            if (transactionID) {
+              url.searchParams.append('transaction_id', transactionID);
+            }
+
+            try {
+              const corrected = await fetch(url.toString(), {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                  "Content-Type": "image/jpg"
+                },
+                body: imageData
+              });
+
+            skinToneRunning = false;
+            const correctedQuery = await corrected.json();
+            let L = 0;
+            let N = 0;
+            /*
+            correctedQuery.corrected_l.forEach((v)=> {
+              if (isNaN(v*1)) return
+              L+=v
+              N++;
+            })
+            L /=N;*/
+
+            if (onFaceAnalysisResultCallback) {
+              let geminiSkinTone = null;
+              let geminiHairColor = null;
+              let otherFindings = correctedQuery.geminiFindings;
+              try {
+                if (typeof(otherFindings) == 'string') {
+                  otherFindings = JSON.parse(JSON.parse(otherFindings));
+                  geminiSkinTone = otherFindings.skinTone;
+                  geminiHairColor = otherFindings.hairColor;
+                }
+              } catch(e) {
+              }
+
+              const resultPayload = {
+                "boundingBox"        : boundingBox,
+                "vitSkinTone"        : geminiSkinTone,
+                "estimatedLValue"    : L,
+                "undertoneHistogram" : correctedQuery.undertone,
+                "hairColor"          : geminiHairColor || correctedQuery.hairColor
+              };
+              if (otherFindings) {
+                resultPayload.otherFindings = otherFindings;
+                resultPayload.skinConcerns = otherFindings.skinConerns;
+                resultPayload.faceShape = otherFindings.faceShape;
+                resultPayload.eyeColor = otherFindings.eyeColor;
+              }
+              /*if (infoPanel) {
+                if (geminiSkinTone) {
+                  infoPanel.innerHTML += `Skin Tone: ${geminiSkinTone}<br>`;
+                }
+              }*/
+
+              onFaceAnalysisResultCallback(resultPayload);
+            }
+            } catch (err) {
+              console.error("Color finder error:", err);
+              skinToneRunning = false;
+            }
+          };
+        }, 'image/jpeg');
       }
     }
   }
