@@ -158,34 +158,24 @@ async function predictLoop() {
             L /=N;*/
 
             if (onFaceAnalysisResultCallback) {
-              let geminiSkinTone = null;
-              let geminiHairColor = null;
-              let otherFindings = correctedQuery.geminiFindings;
-              try {
-                if (typeof(otherFindings) == 'string') {
-                  otherFindings = JSON.parse(JSON.parse(otherFindings));
-                  geminiSkinTone = otherFindings.skinTone;
-                  geminiHairColor = otherFindings.hairColor;
-                }
-              } catch(e) {
-              }
-
               const resultPayload = {
                 "boundingBox"        : boundingBox,
-                "vitSkinTone"        : geminiSkinTone,
+                "vitSkinTone"        : correctedQuery.vit_skintone,
                 "estimatedLValue"    : L,
-                "undertoneHistogram" : correctedQuery.undertone,
-                "hairColor"          : geminiHairColor || correctedQuery.hairColor
+                "undertoneHistogram" : correctedQuery.undertone_histogram,
+                "hairColor"          : correctedQuery.hair_color,
+                "faceShape"          : correctedQuery.vit_faceshape,
+                "topColors"          : correctedQuery.top_colors,
+                "topColorsLab"       : correctedQuery.top_colors_lab,
+                "referenceProducts"  : correctedQuery.reference_products,
+                "referenceProductsLab": correctedQuery.reference_products_lab,
+                "rollAngle"          : correctedQuery.roll_angle,
+                "yawAngle"           : correctedQuery.yaw_angle,
+                "transactionId"      : correctedQuery.transaction_id
               };
-              if (otherFindings) {
-                resultPayload.otherFindings = otherFindings;
-                resultPayload.skinConcerns = otherFindings.skinConerns;
-                resultPayload.faceShape = otherFindings.faceShape;
-                resultPayload.eyeColor = otherFindings.eyeColor;
-              }
               /*if (infoPanel) {
-                if (geminiSkinTone) {
-                  infoPanel.innerHTML += `Skin Tone: ${geminiSkinTone}<br>`;
+                if (correctedQuery.vit_skintone) {
+                  infoPanel.innerHTML += `Skin Tone: ${correctedQuery.vit_skintone}<br>`;
                 }
               }*/
 
