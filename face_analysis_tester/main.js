@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
     resultsContent.innerHTML = '';
     
     // Actual fetch would look like this:
-    const response = await fetch('https://bjcl0ah4nk.execute-api.us-east-1.amazonaws.com/prod/aiface', {
+    const response = await fetch('https://kk2ztajnbb.execute-api.us-east-1.amazonaws.com/prod/aiface', {
       method: 'POST',
       headers: {
         'Content-Type': 'image/jpg',
