@@ -177,6 +177,14 @@
         </div>
       </div>
 
+      <div id="face-metrics-section">
+        <h3 style="color: #ffbdfc; margin-bottom: 10px;">Face Metrics</h3>
+        <div style="margin-bottom: 15px;">
+          <div style="font-size: 0.9rem; color: #aaa;">Face Area Ratio:</div>
+          <div id="area-ratio-value" style="font-size: 1.1rem; color: #fff;">--%</div>
+        </div>
+      </div>
+
       <div id="analysis-info">
         <small style="color: #999;">Last updated: <span id="last-update">Never</span></small>
       </div>
@@ -189,16 +197,25 @@
   </div>
 
   <script type="module">
-    import { initFaceLandmarker, stopCamera, enableCamera, drawFaceBoundingBox } from 'https://swatched-development.github.io/evaluation_tools/realtime/main.js';
+    import { initFaceLandmarker, stopCamera, enableCamera, drawFaceBoundingBox } from './main.js' //from 'https://swatched-development.github.io/evaluation_tools/realtime/main.js';
+    
 
     window.stopper = stopCamera;
     window.starter = enableCamera
 
     function onPerFrame(frameData) {
-      // Paint bounding box every frame
       drawFaceBoundingBox(frameData.boundingBox);
 
-      // Update face angles in real-time if available
+      // Calculate and update face area ratio directly from bounding box
+      if (frameData.boundingBox) {
+        const bb = frameData.boundingBox;
+        const areaRatio = ((bb.w * bb.h) / (1280 * 720)) * 100;
+        const areaRatioElement = document.getElementById('area-ratio-value');
+        areaRatioElement.textContent = `${areaRatio.toFixed(1)}%`;
+        areaRatioElement.style.color = '#4ade80';
+      }
+
+      // Update face angles
       if (frameData.faceAngles) {
         const yawElement = document.getElementById('yaw-value');
         const pitchElement = document.getElementById('pitch-value');
@@ -326,7 +343,7 @@
     document.getElementById('startBtn').addEventListener('click', async () => {
       document.querySelector('.layout-container').style.display = 'flex';
       document.getElementById('startBtn').style.display = 'none';
-      await initFaceLandmarker(onFinalResult, false,"debugid", onPerFrame)
+      await initFaceLandmarker(onFinalResult, false, "debugid", "dev", onPerFrame)
     });
   </script>
 

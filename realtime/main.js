@@ -114,16 +114,18 @@ async function predictLoop() {
       // FORCED: Always draw face mesh - mandatory display
       drawFaceMesh(landmarks);
 
+
       if (onPerFrameCallback) {
         onPerFrameCallback({
           boundingBox: boundingBox,
           landmarks: landmarks,
           rgbColors: rgbColors,
-          faceAngles: faceAngles
+          faceAngles: faceAngles,
+          areaRatio: boundingBox.areaRatio
         });
-      } else {
-        updateFaceBoundingBox(boundingBox);
       }
+
+      updateFaceBoundingBox(boundingBox);
 
       const currentTime = performance.now();
       if (!skinToneRunning && (currentTime - lastTriggerTime) >= 4000) {
@@ -218,7 +220,14 @@ function getBoundingBoxFromLandmarks(landmarks) {
   const y = Math.floor(minY * video.videoHeight);
   const w = Math.ceil((maxX - minX) * video.videoWidth);
   const h = Math.ceil((maxY - minY) * video.videoHeight);
-  return { x, y, w, h };
+
+  // Calculate bounding box area and ratio to total image
+  const boundingBoxArea = w * h;
+  const totalImageArea = video.videoWidth * video.videoHeight;
+  const areaRatio = (boundingBoxArea / totalImageArea) * 100; // Percentage
+
+
+  return { x, y, w, h, areaRatio };
 }
 
 function extractAndDisplayColors(landmarks) {
