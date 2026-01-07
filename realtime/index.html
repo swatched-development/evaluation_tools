@@ -131,6 +131,21 @@
     </div>
     <div id="info-panel" class="info-panel">
       <h2>Color Zone Analysis</h2>
+
+      <div id="skintone-section">
+        <h3 style="color: #ffbdfc; margin-bottom: 10px;">Skin Tone</h3>
+        <div id="skintone-value" style="font-size: 1.1rem; color: #fff; margin-bottom: 15px;">Analyzing...</div>
+      </div>
+
+      <div id="undertone-section">
+        <h3 style="color: #ffbdfc; margin-bottom: 10px;">Undertone</h3>
+        <div id="undertone-value" style="font-size: 1.1rem; color: #fff; margin-bottom: 15px;">Analyzing...</div>
+        <div id="undertone-histogram" style="margin-top: 10px;"></div>
+      </div>
+
+      <div id="analysis-info">
+        <small style="color: #999;">Last updated: <span id="last-update">Never</span></small>
+      </div>
     </div>
   </div>
 
@@ -140,7 +155,7 @@
   </div>
 
   <script type="module">
-    import { initFaceLandmarker, stopCamera, enableCamera, drawFaceBoundingBox } from './main.js';//'https://swatched-development.github.io/evaluation_tools/realtime/main.js';
+    import { initFaceLandmarker, stopCamera, enableCamera, drawFaceBoundingBox } from 'https://swatched-development.github.io/evaluation_tools/realtime/main.js';
 
     window.stopper = stopCamera;
     window.starter = enableCamera
@@ -152,6 +167,60 @@
 
     function onFinalResult(result) {
       console.log("Analysis result:", result);
+
+      // Update skintone display
+      const skintoneElement = document.getElementById('skintone-value');
+      if (result.vitSkinTone) {
+        skintoneElement.textContent = result.vitSkinTone;
+        skintoneElement.style.color = '#4ade80'; // Green for active data
+      } else {
+        skintoneElement.textContent = 'Not detected';
+        skintoneElement.style.color = '#fbbf24'; // Yellow for no data
+      }
+
+      // Update undertone display
+      const undertoneElement = document.getElementById('undertone-value');
+      const histogramElement = document.getElementById('undertone-histogram');
+
+      if (result.undertoneHistogram) {
+        // Find dominant undertone from histogram
+        let dominantUndertone = '';
+        let maxValue = 0;
+
+        for (const [undertone, value] of Object.entries(result.undertoneHistogram)) {
+          if (value > maxValue) {
+            maxValue = value;
+            dominantUndertone = undertone;
+          }
+        }
+
+        undertoneElement.textContent = `${dominantUndertone} (${(maxValue * 100).toFixed(1)}%)`;
+        undertoneElement.style.color = '#4ade80'; // Green for active data
+
+        // Display histogram bars
+        let histogramHtml = '<div style="margin-top: 5px;">';
+        for (const [undertone, value] of Object.entries(result.undertoneHistogram)) {
+          const percentage = (value * 100).toFixed(1);
+          const barWidth = Math.max(percentage * 2, 5); // Scale for visibility
+          histogramHtml += `
+            <div style="margin: 2px 0; font-size: 0.8rem;">
+              <span style="display: inline-block; width: 80px;">${undertone}:</span>
+              <div style="display: inline-block; background: #ff77ff; height: 10px; width: ${barWidth}px; margin-left: 5px; border-radius: 2px;"></div>
+              <span style="margin-left: 5px; color: #ccc;">${percentage}%</span>
+            </div>
+          `;
+        }
+        histogramHtml += '</div>';
+        histogramElement.innerHTML = histogramHtml;
+      } else {
+        undertoneElement.textContent = 'Not detected';
+        undertoneElement.style.color = '#fbbf24'; // Yellow for no data
+        histogramElement.innerHTML = '';
+      }
+
+      // Update timestamp
+      const now = new Date();
+      document.getElementById('last-update').textContent = now.toLocaleTimeString();
     }
 
     document.getElementById('startBtn').addEventListener('click', async () => {
