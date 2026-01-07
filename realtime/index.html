@@ -140,7 +140,41 @@
       <div id="undertone-section">
         <h3 style="color: #ffbdfc; margin-bottom: 10px;">Undertone</h3>
         <div id="undertone-value" style="font-size: 1.1rem; color: #fff; margin-bottom: 15px;">Analyzing...</div>
-        <div id="undertone-histogram" style="margin-top: 10px;"></div>
+        <div id="undertone-histogram" style="margin-top: 10px;">
+          <div id="warm-bar" style="margin: 2px 0; font-size: 0.8rem; display: none;">
+            <span style="display: inline-block; width: 80px;">Warm:</span>
+            <div id="warm-bar-fill" style="display: inline-block; background: #ff77ff; height: 10px; width: 5px; margin-left: 5px; border-radius: 2px;"></div>
+            <span id="warm-percentage" style="margin-left: 5px; color: #ccc;">0%</span>
+          </div>
+          <div id="cool-bar" style="margin: 2px 0; font-size: 0.8rem; display: none;">
+            <span style="display: inline-block; width: 80px;">Cool:</span>
+            <div id="cool-bar-fill" style="display: inline-block; background: #ff77ff; height: 10px; width: 5px; margin-left: 5px; border-radius: 2px;"></div>
+            <span id="cool-percentage" style="margin-left: 5px; color: #ccc;">0%</span>
+          </div>
+          <div id="neutral-bar" style="margin: 2px 0; font-size: 0.8rem; display: none;">
+            <span style="display: inline-block; width: 80px;">Neutral:</span>
+            <div id="neutral-bar-fill" style="display: inline-block; background: #ff77ff; height: 10px; width: 5px; margin-left: 5px; border-radius: 2px;"></div>
+            <span id="neutral-percentage" style="margin-left: 5px; color: #ccc;">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="face-angles-section">
+        <h3 style="color: #ffbdfc; margin-bottom: 10px;">Face Angles</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px;">
+          <div>
+            <div style="font-size: 0.9rem; color: #aaa;">Yaw:</div>
+            <div id="yaw-value" style="font-size: 1.1rem; color: #fff;">--°</div>
+          </div>
+          <div>
+            <div style="font-size: 0.9rem; color: #aaa;">Pitch:</div>
+            <div id="pitch-value" style="font-size: 1.1rem; color: #fff;">--°</div>
+          </div>
+          <div>
+            <div style="font-size: 0.9rem; color: #aaa;">Roll:</div>
+            <div id="roll-value" style="font-size: 1.1rem; color: #fff;">--°</div>
+          </div>
+        </div>
       </div>
 
       <div id="analysis-info">
@@ -163,6 +197,37 @@
     function onPerFrame(frameData) {
       // Paint bounding box every frame
       drawFaceBoundingBox(frameData.boundingBox);
+
+      // Update face angles in real-time if available
+      if (frameData.faceAngles) {
+        const yawElement = document.getElementById('yaw-value');
+        const pitchElement = document.getElementById('pitch-value');
+        const rollElement = document.getElementById('roll-value');
+
+        if (frameData.faceAngles.yaw !== null) {
+          yawElement.textContent = `${frameData.faceAngles.yaw}°`;
+          yawElement.style.color = '#4ade80';
+        } else {
+          yawElement.textContent = '--°';
+          yawElement.style.color = '#fbbf24';
+        }
+
+        if (frameData.faceAngles.pitch !== null) {
+          pitchElement.textContent = `${frameData.faceAngles.pitch}°`;
+          pitchElement.style.color = '#4ade80';
+        } else {
+          pitchElement.textContent = '--°';
+          pitchElement.style.color = '#fbbf24';
+        }
+
+        if (frameData.faceAngles.roll !== null) {
+          rollElement.textContent = `${frameData.faceAngles.roll}°`;
+          rollElement.style.color = '#4ade80';
+        } else {
+          rollElement.textContent = '--°';
+          rollElement.style.color = '#fbbf24';
+        }
+      }
     }
 
     function onFinalResult(result) {
@@ -197,25 +262,60 @@
         undertoneElement.textContent = `${dominantUndertone} (${(maxValue * 100).toFixed(1)}%)`;
         undertoneElement.style.color = '#4ade80'; // Green for active data
 
-        // Display histogram bars
-        let histogramHtml = '<div style="margin-top: 5px;">';
+        // Update histogram bars - only modify existing elements
         for (const [undertone, value] of Object.entries(result.undertoneHistogram)) {
           const percentage = (value * 100).toFixed(1);
-          const barWidth = Math.max(percentage * 2, 5); // Scale for visibility
-          histogramHtml += `
-            <div style="margin: 2px 0; font-size: 0.8rem;">
-              <span style="display: inline-block; width: 80px;">${undertone}:</span>
-              <div style="display: inline-block; background: #ff77ff; height: 10px; width: ${barWidth}px; margin-left: 5px; border-radius: 2px;"></div>
-              <span style="margin-left: 5px; color: #ccc;">${percentage}%</span>
-            </div>
-          `;
+          const barWidth = Math.max(percentage * 2, 5);
+          const undertoneKey = undertone.toLowerCase();
+
+          const barElement = document.getElementById(`${undertoneKey}-bar`);
+          const barFill = document.getElementById(`${undertoneKey}-bar-fill`);
+          const barPercentage = document.getElementById(`${undertoneKey}-percentage`);
+
+          if (barElement && barFill && barPercentage) {
+            barElement.style.display = 'block';
+            barFill.style.width = `${barWidth}px`;
+            barPercentage.textContent = `${percentage}%`;
+          }
         }
-        histogramHtml += '</div>';
-        histogramElement.innerHTML = histogramHtml;
       } else {
         undertoneElement.textContent = 'Not detected';
         undertoneElement.style.color = '#fbbf24'; // Yellow for no data
-        histogramElement.innerHTML = '';
+
+        // Hide all histogram bars
+        ['warm', 'cool', 'neutral'].forEach(type => {
+          const barElement = document.getElementById(`${type}-bar`);
+          if (barElement) barElement.style.display = 'none';
+        });
+      }
+
+      // Update face angles display
+      const yawElement = document.getElementById('yaw-value');
+      const pitchElement = document.getElementById('pitch-value');
+      const rollElement = document.getElementById('roll-value');
+
+      if (result.yawAngle !== undefined && result.yawAngle !== null) {
+        yawElement.textContent = `${result.yawAngle.toFixed(1)}°`;
+        yawElement.style.color = '#4ade80'; // Green for active data
+      } else {
+        yawElement.textContent = '--°';
+        yawElement.style.color = '#fbbf24'; // Yellow for no data
+      }
+
+      if (result.pitchAngle !== undefined && result.pitchAngle !== null) {
+        pitchElement.textContent = `${result.pitchAngle.toFixed(1)}°`;
+        pitchElement.style.color = '#4ade80'; // Green for active data
+      } else {
+        pitchElement.textContent = '--°';
+        pitchElement.style.color = '#fbbf24'; // Yellow for no data
+      }
+
+      if (result.rollAngle !== undefined && result.rollAngle !== null) {
+        rollElement.textContent = `${result.rollAngle.toFixed(1)}°`;
+        rollElement.style.color = '#4ade80'; // Green for active data
+      } else {
+        rollElement.textContent = '--°';
+        rollElement.style.color = '#fbbf24'; // Yellow for no data
       }
 
       // Update timestamp
@@ -226,7 +326,7 @@
     document.getElementById('startBtn').addEventListener('click', async () => {
       document.querySelector('.layout-container').style.display = 'flex';
       document.getElementById('startBtn').style.display = 'none';
-      await initFaceLandmarker(onFinalResult, false,"debugid")
+      await initFaceLandmarker(onFinalResult, false,"debugid", onPerFrame)
     });
   </script>
 

@@ -5,6 +5,7 @@ import { getDominantColorFromRegion } from './utils/colors.js';
 // import { VITInferenceWeb, SKIN_COLOR_CLASSES } from './utils/vits.js';
 // import { TFLiteInferenceHelper, drawHairCanvas, getHairColor} from './utils/hair.js';
 import { createFaceMaskedImage } from './utils/faceUtils.js';
+import { calculateFaceAngles } from './utils/faceAngles.js';
 const { FaceLandmarker, FilesetResolver, DrawingUtils } = vision;
 const video = document.getElementById("webcam");
 const canvasElement = document.getElementById("output_canvas");
@@ -32,8 +33,8 @@ export function setTransactionId(newId){
   transactionID = newId;
 }
 
-export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_id,environment="dev") {
-  
+export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_id,environment="dev", onPerFrame=null) {
+
   transactionID=transaction_id;
   environmentID={
     "dev" : "8ix3xnvt0j",
@@ -44,7 +45,7 @@ export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_
 
 
   onFaceAnalysisResultCallback=onResult
-  onPerFrameCallback=undefined;//onPerFrame
+  onPerFrameCallback=onPerFrame;
   // await hairSegmenter.load()
   createFaceBoundingBoxOverlay();
   const filesetResolver = await FilesetResolver.forVisionTasks(
@@ -106,7 +107,10 @@ async function predictLoop() {
       const hairRgbColor = null;
       const boundingBox = getBoundingBoxFromLandmarks(landmarks);
 
-      
+      // Calculate face angles from landmarks
+      const faceAngles = calculateFaceAngles(landmarks);
+
+
       // FORCED: Always draw face mesh - mandatory display
       drawFaceMesh(landmarks);
 
@@ -114,7 +118,8 @@ async function predictLoop() {
         onPerFrameCallback({
           boundingBox: boundingBox,
           landmarks: landmarks,
-          rgbColors: rgbColors
+          rgbColors: rgbColors,
+          faceAngles: faceAngles
         });
       } else {
         updateFaceBoundingBox(boundingBox);
@@ -176,8 +181,9 @@ async function predictLoop() {
                 "topColorsLab"       : correctedQuery.top_colors_lab,
                 "referenceProducts"  : correctedQuery.reference_products,
                 "referenceProductsLab": correctedQuery.reference_products_lab,
-                "rollAngle"          : correctedQuery.roll_angle,
-                "yawAngle"           : correctedQuery.yaw_angle,
+                "rollAngle"          : faceAngles.roll,
+                "yawAngle"           : faceAngles.yaw,
+                "pitchAngle"         : faceAngles.pitch,
                 "transactionId"      : correctedQuery.transaction_id
               };
               /*if (infoPanel) {
