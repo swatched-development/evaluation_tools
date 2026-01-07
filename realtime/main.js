@@ -85,6 +85,7 @@ export async function enableCamera() {
   requestAnimationFrame(predictLoop);
 }
 let counter = 0
+let lastTriggerTime = 0
 
 async function predictLoop() {
   if (!webcamRunning) return;
@@ -104,7 +105,11 @@ async function predictLoop() {
       // const hairRgbColor=getHairColor(hairResults)
       const hairRgbColor = null;
       const boundingBox = getBoundingBoxFromLandmarks(landmarks);
+
       
+      // FORCED: Always draw face mesh - mandatory display
+      drawFaceMesh(landmarks);
+
       if (onPerFrameCallback) {
         onPerFrameCallback({
           boundingBox: boundingBox,
@@ -114,8 +119,10 @@ async function predictLoop() {
       } else {
         updateFaceBoundingBox(boundingBox);
       }
-      
-      if (!skinToneRunning && !(counter%6)) {
+
+      const currentTime = performance.now();
+      if (!skinToneRunning && (currentTime - lastTriggerTime) >= 4000) {
+        lastTriggerTime = currentTime;
         skinToneRunning = true;
         const maskedFaceCanvas = createFaceMaskedImage(video, landmarks);
 
@@ -267,5 +274,40 @@ function updateFaceBoundingBox(boundingBox) {
 
 export function drawFaceBoundingBox(boundingBox) {
   updateFaceBoundingBox(boundingBox);
+}
+
+function drawFaceMesh(landmarks) {
+  try {
+    const drawingUtils = new DrawingUtils(canvasCtx);
+
+    // Draw all landmarks as dots first (simpler approach)
+    for (let i = 0; i < landmarks.length; i++) {
+      const landmark = landmarks[i];
+      const x = landmark.x * canvasElement.width;
+      const y = landmark.y * canvasElement.height;
+
+      canvasCtx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+      canvasCtx.beginPath();
+      canvasCtx.arc(x, y, 1, 0, 2 * Math.PI);
+      canvasCtx.fill();
+    }
+
+    // Draw face connectors using MediaPipe constants
+    if (vision.FaceLandmarker.FACE_LANDMARKS_TESSELATION) {
+      drawingUtils.drawConnectors(landmarks, vision.FaceLandmarker.FACE_LANDMARKS_TESSELATION, {
+        color: 'rgba(0, 255, 0, 0.3)',
+        lineWidth: 0.5,
+      });
+    }
+
+    if (vision.FaceLandmarker.FACE_LANDMARKS_FACE_OVAL) {
+      drawingUtils.drawConnectors(landmarks, vision.FaceLandmarker.FACE_LANDMARKS_FACE_OVAL, {
+        color: 'rgba(0, 255, 0, 0.7)',
+        lineWidth: 1,
+      });
+    }
+  } catch (error) {
+    console.error("Error drawing face mesh:", error);
+  }
 }
 
