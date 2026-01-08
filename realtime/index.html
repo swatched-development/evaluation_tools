@@ -185,6 +185,36 @@
         </div>
       </div>
 
+      <div id="light-metrics-section">
+        <h3 style="color: #ffbdfc; margin-bottom: 10px;">Light Metrics</h3>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;">
+          <div>
+            <div style="font-size: 0.8rem; color: #aaa;">Face Luminance:</div>
+            <div id="face-luminance-value" style="font-size: 0.9rem; color: #fff;">--</div>
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; color: #aaa;">Background Luminance:</div>
+            <div id="background-luminance-value" style="font-size: 0.9rem; color: #fff;">--</div>
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; color: #aaa;">Weber Contrast:</div>
+            <div id="weber-contrast-value" style="font-size: 0.9rem; color: #fff;">--</div>
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; color: #aaa;">Exposure Value:</div>
+            <div id="exposure-value" style="font-size: 0.9rem; color: #fff;">--</div>
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; color: #aaa;">Face RMS Contrast:</div>
+            <div id="face-rms-contrast-value" style="font-size: 0.9rem; color: #fff;">--</div>
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; color: #aaa;">Log-Avg Luminance:</div>
+            <div id="log-luminance-value" style="font-size: 0.9rem; color: #fff;">--</div>
+          </div>
+        </div>
+      </div>
+
       <div id="analysis-info">
         <small style="color: #999;">Last updated: <span id="last-update">Never</span></small>
       </div>
@@ -197,7 +227,7 @@
   </div>
 
   <script type="module">
-    import { initFaceLandmarker, stopCamera, enableCamera, drawFaceBoundingBox } from './main.js' //from 'https://swatched-development.github.io/evaluation_tools/realtime/main.js';
+    import { initFaceLandmarker, stopCamera, enableCamera, drawFaceBoundingBox } from 'https://swatched-development.github.io/evaluation_tools/realtime/main.js';
     
 
     window.stopper = stopCamera;
@@ -244,6 +274,27 @@
           rollElement.textContent = '--°';
           rollElement.style.color = '#fbbf24';
         }
+      }
+
+      // Update light metrics
+      if (frameData.lightMetrics) {
+        const metrics = frameData.lightMetrics;
+
+        document.getElementById('face-luminance-value').textContent = metrics.foregroundLuminance.toFixed(3);
+        document.getElementById('background-luminance-value').textContent = metrics.backgroundLuminance.toFixed(3);
+        document.getElementById('weber-contrast-value').textContent = metrics.weberContrast.toFixed(3);
+        document.getElementById('exposure-value').textContent = `${metrics.exposureValue.toFixed(2)} EV`;
+        document.getElementById('face-rms-contrast-value').textContent = metrics.foregroundRMSContrast.toFixed(3);
+        document.getElementById('log-luminance-value').textContent = metrics.foregroundLogLuminance.toFixed(3);
+
+        // Color code based on values
+        const faceLumEl = document.getElementById('face-luminance-value');
+        const weberEl = document.getElementById('weber-contrast-value');
+        const evEl = document.getElementById('exposure-value');
+
+        faceLumEl.style.color = metrics.foregroundLuminance > 0.1 ? '#4ade80' : '#fbbf24';
+        weberEl.style.color = Math.abs(metrics.weberContrast) < 0.5 ? '#4ade80' : '#ef4444';
+        evEl.style.color = Math.abs(metrics.exposureValue) < 1 ? '#4ade80' : '#fbbf24';
       }
     }
 

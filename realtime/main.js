@@ -6,6 +6,7 @@ import { getDominantColorFromRegion } from './utils/colors.js';
 // import { TFLiteInferenceHelper, drawHairCanvas, getHairColor} from './utils/hair.js';
 import { createFaceMaskedImage } from './utils/faceUtils.js';
 import { calculateFaceAngles } from './utils/faceAngles.js';
+import { calculateFaceAndBackgroundLuminance } from './utils/lightmetrics.js';
 const { FaceLandmarker, FilesetResolver, DrawingUtils } = vision;
 const video = document.getElementById("webcam");
 const canvasElement = document.getElementById("output_canvas");
@@ -110,6 +111,18 @@ async function predictLoop() {
       // Calculate face angles from landmarks
       const faceAngles = calculateFaceAngles(landmarks);
 
+      // Calculate light metrics
+      const scratchCanvas = document.createElement("canvas");
+      scratchCanvas.width = video.videoWidth;
+      scratchCanvas.height = video.videoHeight;
+      const scratchCtx = scratchCanvas.getContext("2d");
+      scratchCtx.drawImage(video, 0, 0);
+
+      // Calculate face and background luminance
+      const faceIndices = [...zones.front, ...zones.left_cheek, ...zones.right_cheek, ...zones.chin];
+      const backgroundIndices = createBackgroundIndices(landmarks, video.videoWidth, video.videoHeight);
+      const lightMetrics = calculateFaceAndBackgroundLuminance(scratchCanvas, landmarks, faceIndices, backgroundIndices);
+
 
       // FORCED: Always draw face mesh - mandatory display
       drawFaceMesh(landmarks);
@@ -121,7 +134,8 @@ async function predictLoop() {
           landmarks: landmarks,
           rgbColors: rgbColors,
           faceAngles: faceAngles,
-          areaRatio: boundingBox.areaRatio
+          areaRatio: boundingBox.areaRatio,
+          lightMetrics: lightMetrics
         });
       }
 
@@ -325,4 +339,24 @@ function drawFaceMesh(landmarks) {
     console.error("Error drawing face mesh:", error);
   }
 }
+
+function createBackgroundIndices(landmarks, width, height) {
+  // Create a rectangular background region around the face
+  const boundingBox = getBoundingBoxFromLandmarks(landmarks);
+  const margin = 50; // pixels
+
+  const backgroundRegion = [
+    { x: Math.max(0, boundingBox.x - margin), y: Math.max(0, boundingBox.y - margin) },
+    { x: Math.min(width, boundingBox.x + boundingBox.w + margin), y: Math.max(0, boundingBox.y - margin) },
+    { x: Math.min(width, boundingBox.x + boundingBox.w + margin), y: Math.min(height, boundingBox.y + boundingBox.h + margin) },
+    { x: Math.max(0, boundingBox.x - margin), y: Math.min(height, boundingBox.y + boundingBox.h + margin) }
+  ];
+
+  // Convert to normalized coordinates for consistency with landmarks
+  return backgroundRegion.map(point => ({
+    x: point.x / width,
+    y: point.y / height
+  }));
+}
+
 
