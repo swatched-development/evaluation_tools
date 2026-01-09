@@ -135,6 +135,7 @@ export function calculateFaceAndBackgroundLuminance(canvas, landmarks, faceIndic
 
         const faceLuminance = calculateAverageLuminance(faceLuminanceValues);
         const backgroundLuminance = calculateAverageLuminance(backgroundLuminanceValues);
+        const luminanceRatio = backgroundLuminance !== 0 ? faceLuminance / backgroundLuminance : 0;
 
         return {
             foregroundLuminance: faceLuminance,
@@ -144,7 +145,7 @@ export function calculateFaceAndBackgroundLuminance(canvas, landmarks, faceIndic
             weberContrast: 0,
             foregroundRMSContrast: 0,
             backgroundRMSContrast: 0,
-            exposureValue: 0
+            exposureValue: luminanceRatio
         };
     } catch (error) {
         return {

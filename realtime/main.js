@@ -14,6 +14,8 @@ const resultsContent = document.getElementById("resultsContent");
 const canvasCtx = canvasElement.getContext("2d");
 const infoPanel = document.getElementById("info-panel")
 
+const OPTIMAL_ANGLE_TOLERANCE=10;
+
 let COLOR_FINDER="https://8ix3xnvt0j.execute-api.us-east-1.amazonaws.com/prod/aiface"
 
 let faceLandmarker;
@@ -184,8 +186,26 @@ async function predictLoop() {
               N++;
             })
             L /=N;*/
+            const fuzzyZero = (a)=> Math.abs(a) < OPTIMAL_ANGLE_TOLERANCE;
+
 
             if (onFaceAnalysisResultCallback) {
+              // Individual quality checks
+              const isGoodAngle = fuzzyZero(faceAngles.yaw) && fuzzyZero(faceAngles.roll) && fuzzyZero(faceAngles.pitch);
+              const isGoodRatio = boundingBox.areaRatio >= 19;
+              const isGoodLightExposition = Math.abs(lightMetrics.exposureValue-1.0) <= 0.2;
+
+              // Quality messages
+              let angleQuality = "";
+              let ratioQuality = "";
+              let lightQuality = "";
+
+              if (!isGoodAngle) angleQuality = "Position your face straight to camera";
+              if (!isGoodRatio) ratioQuality = "Get closer to the camera";
+              if (!isGoodLightExposition) lightQuality = "Poor light exposure quality";
+
+              const isTheFramePotentiallyOptimally = isGoodAngle && isGoodRatio && isGoodLightExposition;
+              console.log(boundingBox.areaRatio);
               const resultPayload = {
                 "boundingBox"        : boundingBox,
                 "vitSkinTone"        : correctedQuery.vit_skintone,
@@ -200,7 +220,11 @@ async function predictLoop() {
                 "rollAngle"          : faceAngles.roll,
                 "yawAngle"           : faceAngles.yaw,
                 "pitchAngle"         : faceAngles.pitch,
-                "transactionId"      : correctedQuery.transaction_id
+                "transactionId"      : correctedQuery.transaction_id,
+                "goodFrame"          : isTheFramePotentiallyOptimally,
+                "angleQuality"       : angleQuality,
+                "ratioQuality"       : ratioQuality,
+                "lightQuality"       : lightQuality
               };
               /*if (infoPanel) {
                 if (correctedQuery.vit_skintone) {
