@@ -1,67 +1,51 @@
-# FaceLandmarker Color Zone Analysis – Quick Start
+# Real-time Facial Analysis
 
-This module captures video from a webcam and analyzes facial color zones in real time. It uses ONNX runtime and returns a structured payload per frame.
+## Required HTML Elements
 
-## Installation
-
-1. **Include ONNX Runtime in your HTML:**
-
+Add these elements to your HTML page:
 ```html
-<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+<!-- Video element for webcam feed -->
+<video id="webcam" autoplay muted playsinline></video>
+<!-- Canvas for face detection overlay -->
+<canvas id="output_canvas"></canvas>
 ```
 
-2. **Add the Required HTML Structure:**
+## Usage
 
-```html
-<button id="startBtn">Start Analysis</button>
+```javascript
+// Import the library functions
+import { initFaceLandmarker, enableCamera, stopCamera } from 'https://swatched-development.github.io/evaluation_tools/realtime/main.js';
 
-<div class="layout-container" style="display:none;">
-  <div class="camera-container">
-    <video id="webcam" autoplay muted playsinline></video>
-    <canvas id="output_canvas"></canvas>
-    <canvas class="grid_canvas"></canvas>
-  </div>
-  <div id="info-panel" class="info-panel">
-    <h2>Color Zone Analysis</h2>
-  </div>
-</div>
-```
+// Initialize facial analysis with your callbacks
+await initFaceLandmarker(
+  onResult,            // Called every 4 seconds with analysis results
+  false,               // skipEnableCamera - set to false to auto-start camera
+  "your-tx-id",        // transaction ID for tracking
+  "dev",               // environment: "dev", "stg", "prod"
+  onPerFrame           // Called every frame with real-time data
+);
 
-3. **Include and Use the Module:**
-
-```html
-<script type="module">  
-
-   //RECOMMENDED TO SETUP THIS URL AS A PARAMETER SO LATER WE HAVE STAGES
-  import { initFaceLandmarker } from 'https://swatched-development.github.io/evaluation_tools/realtime/main.js';
-
-  document.getElementById('startBtn').addEventListener('click', () => {
-    document.querySelector('.layout-container').style.display = 'flex';
-    document.getElementById('startBtn').style.display = 'none';
-
-    initFaceLandmarker((result) => {
-      console.log("Analysis Result:", result);
-    });
-  });
-</script>
-```
-
-## Callback Payload
-
-The callback passed to `initFaceLandmarker` receives an object like this per frame:
-
-```js
-{
-  vitSkinTone: string,
-  estimatedLValue: number,
-  undertoneHistogram: number[],
-  hairColor: string,
-  skinConcerns: string[]
+function onResult(result) {
+  // This function receives final analysis results every 4 seconds
+  console.log(result.vitSkinTone);        // Skin tone classification: "Light", "Medium", "Dark", etc.
+  console.log(result.undertoneHistogram); // Undertone distribution: {warm: 0.3, cool: 0.5, neutral: 0.2}
+  console.log(result.goodFrame);          // Frame quality assessment: true/false
+  console.log(result.yawAngle);           // Face rotation left/right in degrees
+  console.log(result.pitchAngle);         // Face rotation up/down in degrees
+  console.log(result.rollAngle);          // Face tilt in degrees
+  console.log(result.topColors);          // Array of dominant RGB colors from face
+  console.log(result.transactionId);      // Your transaction ID echoed back
 }
+
+function onPerFrame(frameData) {
+  // This function receives real-time data for every video frame
+  console.log(frameData.boundingBox);     // Face bounding box: {x, y, w, h, areaRatio}
+  console.log(frameData.faceAngles);      // Real-time face angles: {yaw, pitch, roll} in degrees
+  console.log(frameData.lightMetrics);    // Lighting analysis: {foregroundLuminance, backgroundLuminance, weberContrast, exposureValue}
+  console.log(frameData.rgbColors);       // Array of RGB colors extracted from different face zones
+}
+
+// Manual camera control (optional - camera starts automatically by default)
+enableCamera();  // Start camera feed
+stopCamera();    // Stop camera feed and release resources
 ```
-
-## Notes
-
-* Ensure the page is served via HTTPS for webcam access.
-* Tested on modern browsers with webcam permissions granted.
-
