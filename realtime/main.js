@@ -149,6 +149,15 @@ async function predictLoop() {
         skinToneRunning = true;
         const maskedFaceCanvas = createFaceMaskedImage(video, landmarks);
 
+        // Update crop preview
+        const cropPreviewCanvas = document.getElementById('crop-preview');
+        if (cropPreviewCanvas) {
+          cropPreviewCanvas.width = maskedFaceCanvas.width;
+          cropPreviewCanvas.height = maskedFaceCanvas.height;
+          const cropPreviewCtx = cropPreviewCanvas.getContext('2d');
+          cropPreviewCtx.drawImage(maskedFaceCanvas, 0, 0);
+        }
+
         maskedFaceCanvas.toBlob(async (blob) => {
           if (!blob) {
             skinToneRunning = false;
@@ -206,12 +215,24 @@ async function predictLoop() {
 
               const isTheFramePotentiallyOptimally = isGoodAngle && isGoodRatio && isGoodLightExposition;
               console.log(boundingBox.areaRatio);
+              let eyeColor = null;
+              if (correctedQuery.nominal_eye_color) {
+                const leftEye = correctedQuery.nominal_eye_color.left;
+                const rightEye = correctedQuery.nominal_eye_color.right;
+                if (leftEye === "Brown" && rightEye === "Brown") {
+                  eyeColor = "Brown";
+                } else {
+                  eyeColor = leftEye !== "Brown" ? leftEye : rightEye;
+                }
+              }
+
               const resultPayload = {
                 "boundingBox"        : boundingBox,
                 "vitSkinTone"        : correctedQuery.vit_skintone,
                 "estimatedLValue"    : L,
                 "undertoneHistogram" : correctedQuery.undertone_histogram,
-                "hairColor"          : correctedQuery.hair_color,
+                "hairColor"          : correctedQuery.nominal_hair_color,
+                "eyeColor"           : eyeColor,
                 "faceShape"          : correctedQuery.vit_faceshape,
                 "topColors"          : correctedQuery.top_colors,
                 "topColorsLab"       : correctedQuery.top_colors_lab,
