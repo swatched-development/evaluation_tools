@@ -24,6 +24,7 @@ let runningMode = "VIDEO";
 let lastVideoTime = -1;
 let webcamRunning = false;
 let skinToneRunning = false;
+let maskEnabled = true;
 
 // const hairSegmenter = new TFLiteInferenceHelper({modelUrl:"https://swatched-development.github.io/evaluation_tools/realtime/models/hair_segmenter.tflite"})
 let onFaceAnalysisResultCallback = null;
@@ -34,6 +35,10 @@ let transactionID=null
 
 export function setTransactionId(newId){
   transactionID = newId;
+}
+
+export function setMaskEnabled(enabled) {
+  maskEnabled = enabled;
 }
 
 export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_id,environment="dev", onPerFrame=null) {
@@ -352,6 +357,8 @@ export function drawFaceBoundingBox(boundingBox) {
 
 function drawFaceMesh(landmarks) {
   try {
+    if (!maskEnabled) return;
+
     const drawingUtils = new DrawingUtils(canvasCtx);
 
     // Draw all landmarks as dots first (simpler approach)

@@ -118,12 +118,29 @@
     #startBtn:hover {
       background: #ff44ff;
     }
+
+    #toggleMaskBtn {
+      margin: 1rem;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      background: #4a9eff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #toggleMaskBtn:hover {
+      background: #357abd;
+    }
   </style>
 </head>
 <body>
   <button id="startBtn">Start Scanning💫</button>
 
   <div class="layout-container" style="display:none;">
+    <button id="toggleMaskBtn" style="position: absolute; top: 10px; right: 10px; z-index: 100;">Hide Face Grid</button>
     <div class="camera-container">
       <video id="webcam" autoplay muted playsinline></video>
       <canvas id="output_canvas"></canvas>
@@ -255,7 +272,7 @@
   </div>
 
   <script type="module">
-    import { initFaceLandmarker, stopCamera, enableCamera, drawFaceBoundingBox } from 'https://swatched-development.github.io/evaluation_tools/realtime/main.js';
+    import { initFaceLandmarker, stopCamera, enableCamera, drawFaceBoundingBox, setMaskEnabled } from 'https://swatched-development.github.io/evaluation_tools/realtime/main.js' //'./main.js';
     
 
     window.stopper = stopCamera;
@@ -474,6 +491,16 @@
       document.querySelector('.layout-container').style.display = 'flex';
       document.getElementById('startBtn').style.display = 'none';
       await initFaceLandmarker(onFinalResult, false, "debugid", "dev", onPerFrame)
+    });
+
+    let maskEnabled = true;
+    document.getElementById('toggleMaskBtn').addEventListener('click', () => {
+      maskEnabled = !maskEnabled;
+      setMaskEnabled(maskEnabled);
+
+      const button = document.getElementById('toggleMaskBtn');
+      button.textContent = maskEnabled ? 'Hide Face Grid' : 'Show Face Grid';
+      button.style.background = maskEnabled ? '#ff4444' : '#4a9eff';
     });
   </script>
 
