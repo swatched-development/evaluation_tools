@@ -10,11 +10,44 @@ Add these elements to your HTML page:
 <canvas id="output_canvas"></canvas>
 ```
 
+## Face Mesh Control
+
+The library includes a face tesselation grid overlay that shows facial landmarks and mesh structure. This can be controlled programmatically:
+
+```javascript
+import { setMaskEnabled } from './main.js';
+
+// Enable face grid (default)
+setMaskEnabled(true);
+
+// Disable face grid
+setMaskEnabled(false);
+```
+
+### UI Toggle Example
+
+Add a toggle button to your HTML:
+```html
+<button id="toggleMaskBtn">Toggle Face Grid</button>
+```
+
+Connect it with JavaScript:
+```javascript
+let maskEnabled = true;
+document.getElementById('toggleMaskBtn').addEventListener('click', () => {
+  maskEnabled = !maskEnabled;
+  setMaskEnabled(maskEnabled);
+
+  const button = document.getElementById('toggleMaskBtn');
+  button.textContent = maskEnabled ? 'Hide Face Grid' : 'Show Face Grid';
+});
+```
+
 ## Usage
 
 ```javascript
 // Import the library functions
-import { initFaceLandmarker, enableCamera, stopCamera } from 'https://swatched-development.github.io/evaluation_tools/realtime/main.js';
+import { initFaceLandmarker, enableCamera, stopCamera, setMaskEnabled } from './main.js';
 
 // Initialize facial analysis with your callbacks
 await initFaceLandmarker(
