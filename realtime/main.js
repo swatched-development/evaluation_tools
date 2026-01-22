@@ -42,7 +42,12 @@ export function setMaskEnabled(enabled) {
 }
 
 export function setCanvasElement(canvas) {
+  if (!(canvas instanceof HTMLCanvasElement)){
+    canvasCtx = null
+    return; 
+  }
   canvasElement = canvas;
+  canvasCtx = canvas.getContext("2d")
 }
 
 export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_id,environment="dev", onPerFrame=null, canvas=undefined) {
@@ -54,10 +59,12 @@ export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_
     "stg": "bjcl0ah4nk"
   }[environment];
   COLOR_FINDER=`https://${environmentID}.execute-api.us-east-1.amazonaws.com/prod/aiface`
-
-  if (canvas !== undefined) {
-    canvasElement = canvas;
+  
+  if (canvas instanceof HTMLCanvasElement){
+    canvasElement = canvas; 
+    canvasCtx = canvas.getContext("2d")
   }
+
 
   onFaceAnalysisResultCallback=onResult
   onPerFrameCallback=onPerFrame;
