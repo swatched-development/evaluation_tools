@@ -9,7 +9,7 @@ import { calculateFaceAngles } from './utils/faceAngles.js';
 import { calculateFaceAndBackgroundLuminance } from './utils/lightmetrics.js';
 const { FaceLandmarker, FilesetResolver, DrawingUtils } = vision;
 const video = document.getElementById("webcam");
-const canvasElement = document.getElementById("output_canvas");
+let canvasElement = document.getElementById("output_canvas");
 const resultsContent = document.getElementById("resultsContent");
 const canvasCtx = canvasElement.getContext("2d");
 const infoPanel = document.getElementById("info-panel")
@@ -41,7 +41,11 @@ export function setMaskEnabled(enabled) {
   maskEnabled = enabled;
 }
 
-export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_id,environment="dev", onPerFrame=null) {
+export function setCanvasElement(canvas) {
+  canvasElement = canvas;
+}
+
+export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_id,environment="dev", onPerFrame=null, canvas=undefined) {
 
   transactionID=transaction_id;
   environmentID={
@@ -49,8 +53,11 @@ export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_
     "prod" : "kk2ztajnbb",
     "stg": "bjcl0ah4nk"
   }[environment];
-  //COLOR_FINDER=`https://${environmentID}.execute-api.us-east-1.amazonaws.com/prod/iaface`
+  COLOR_FINDER=`https://${environmentID}.execute-api.us-east-1.amazonaws.com/prod/iaface`
 
+  if (canvas !== undefined) {
+    canvasElement = canvas;
+  }
 
   onFaceAnalysisResultCallback=onResult
   onPerFrameCallback=onPerFrame;
@@ -192,14 +199,6 @@ async function predictLoop() {
             skinToneRunning = false;
             const correctedQuery = await corrected.json();
             let L = 0;
-            let N = 0;
-            /*
-            correctedQuery.corrected_l.forEach((v)=> {
-              if (isNaN(v*1)) return
-              L+=v
-              N++;
-            })
-            L /=N;*/
             const fuzzyZero = (a)=> Math.abs(a) < OPTIMAL_ANGLE_TOLERANCE;
 
 
