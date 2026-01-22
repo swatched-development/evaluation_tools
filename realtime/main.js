@@ -11,7 +11,7 @@ const { FaceLandmarker, FilesetResolver, DrawingUtils } = vision;
 const video = document.getElementById("webcam");
 let canvasElement = document.getElementById("output_canvas");
 const resultsContent = document.getElementById("resultsContent");
-const canvasCtx = canvasElement.getContext("2d");
+let canvasCtx = canvasElement.getContext("2d");
 const infoPanel = document.getElementById("info-panel")
 
 const OPTIMAL_ANGLE_TOLERANCE=10;
