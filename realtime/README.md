@@ -47,7 +47,7 @@ document.getElementById('toggleMaskBtn').addEventListener('click', () => {
 
 ```javascript
 // Import the library functions
-import { initFaceLandmarker, enableCamera, stopCamera, setMaskEnabled } from './main.js';
+import { initFaceLandmarker, enableCamera, stopCamera, setMaskEnabled, setCanvasElement } from './main.js';
 
 // Initialize facial analysis with your callbacks
 await initFaceLandmarker(
@@ -55,8 +55,12 @@ await initFaceLandmarker(
   false,               // skipEnableCamera - set to false to auto-start camera
   "your-tx-id",        // transaction ID for tracking
   "dev",               // environment: "dev", "stg", "prod"
-  onPerFrame           // Called every frame with real-time data
+  onPerFrame,          // Called every frame with real-time data
+  myCanvas             // Optional: custom canvas element (defaults to "output_canvas")
 );
+
+// Set canvas element (alternative method)
+setCanvasElement(document.getElementById('my-canvas'));
 
 function onResult(result) {
   // This function receives final analysis results every 4 seconds
