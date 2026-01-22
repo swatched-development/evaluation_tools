@@ -53,7 +53,7 @@ export async function initFaceLandmarker(onResult,skipEnableCamera, transaction_
     "prod" : "kk2ztajnbb",
     "stg": "bjcl0ah4nk"
   }[environment];
-  COLOR_FINDER=`https://${environmentID}.execute-api.us-east-1.amazonaws.com/prod/iaface`
+  COLOR_FINDER=`https://${environmentID}.execute-api.us-east-1.amazonaws.com/prod/aiface`
 
   if (canvas !== undefined) {
     canvasElement = canvas;
